@@ -1,5 +1,10 @@
 {
+  "item.etymonica.etymonicon": "Etymonicon",
   "item.etymonica.stygian_ink": "Stygian Ink",
   "item.etymonica.aurichalcum_quill": "Aurichalcum Quill",
-  "block.etymonica.aurichalcum_block": "Aurichalcum Block"
+
+  "block.etymonica.aurichalcum_block": "Aurichalcum Block",
+
+  "creativetab.etymonica.etymonica_items": "Etymonica Items",
+  "creativetab.etymonica.etymonica_blocks": "Etymonica Blocks"
 }

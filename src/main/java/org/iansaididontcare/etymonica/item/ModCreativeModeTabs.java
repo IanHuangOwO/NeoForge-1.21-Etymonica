@@ -23,6 +23,7 @@ public class ModCreativeModeTabs {
                     .displayItems((itemDisplayParameters, output) -> {
                         output.accept(ModItems.ETYMONICON);
                         output.accept(ModItems.AURICHALCUM_QUILL);
+                        output.accept(ModItems.STYGIAN_INK);
                     }).build());
 
     public static final Supplier<CreativeModeTab> ETYMONICA_BLOCK_TAB = CREATIVE_MODE_TAB.register("etmonica_blocks_tab",
