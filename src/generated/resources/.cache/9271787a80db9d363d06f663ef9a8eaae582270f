@@ -1,0 +1,10 @@
+// 1.21.11	2026-02-17T22:55:49.1485505	Model Definitions - etymonica
+e84875b8c532bb0a808e8e1a77faea1e71784076 assets/etymonica/blockstates/aurichalcum_block.json
+71086e9cc57e1cd5ced2d7540db4a9cf867d71cd assets/etymonica/items/aurichalcum_block.json
+b750b61007f8cac3ecd9be770cba2faf6a4c6e42 assets/etymonica/items/aurichalcum_quill.json
+a12457cc4631f7fc7be24a08c7389b60c02b9126 assets/etymonica/items/etymonicon.json
+65825713a6bc4340f4592e88e2e2f34ebd7914dd assets/etymonica/items/stygian_ink.json
+54210c1ebe77dc05d0bfed8e93be8fe35a01e499 assets/etymonica/models/block/aurichalcum_block.json
+7ff3c0bc6ec50c663596b69329cc48bd4737cdd6 assets/etymonica/models/item/aurichalcum_quill.json
+72c62ebe353ffc4941df8d566cb4ca7f50e9cb98 assets/etymonica/models/item/etymonicon.json
+5661b0901cca0e6801125fc192a8f97565036938 assets/etymonica/models/item/stygian_ink.json

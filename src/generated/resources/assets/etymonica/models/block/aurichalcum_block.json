@@ -1,0 +1,6 @@
+{
+  "parent": "minecraft:block/cube_all",
+  "textures": {
+    "all": "etymonica:block/aurichalcum_block"
+  }
+}
