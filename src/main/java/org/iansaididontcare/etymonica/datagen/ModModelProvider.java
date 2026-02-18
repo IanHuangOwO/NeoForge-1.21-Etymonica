@@ -21,12 +21,17 @@ public class ModModelProvider extends ModelProvider {
 
     @Override
     protected void registerModels(BlockModelGenerators blockModels, ItemModelGenerators itemModels) {
+        /* ITEMS */
         itemModels.generateFlatItem(ModItems.ETYMONICON.get(), ModelTemplates.FLAT_ITEM);
-        itemModels.generateFlatItem(ModItems.AURICHALCUM_QUILL.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(ModItems.RAW_ORICHALCUM.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(ModItems.ORICHALCUM_INGOT.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(ModItems.ORICHALCUM_QUILL.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ModItems.STYGIAN_INK.get(), ModelTemplates.FLAT_ITEM);
 
         /* BLOCKS */
-        blockModels.family(ModBlocks.AURICHALCUM_BLOCK.get());
+        blockModels.createTrivialCube(ModBlocks.ORICHALCUM_ORE.get());
+        blockModels.createTrivialCube(ModBlocks.DEEPSLATE_ORICHALCUM_ORE.get());
+        blockModels.createTrivialCube(ModBlocks.ORICHALCUM_BLOCK.get());
     }
 
     @Override

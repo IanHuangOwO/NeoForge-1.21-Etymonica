@@ -14,10 +14,16 @@ public class ModItems {
     public static final DeferredItem<Item> ETYMONICON = ITEMS.register("etymonicon",
             registryName -> new Item(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName))));
 
+    public static final DeferredItem<Item> RAW_ORICHALCUM = ITEMS.register("raw_orichalcum",
+            registryName -> new Item(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName))));
+
+    public static final DeferredItem<Item> ORICHALCUM_INGOT = ITEMS.register("orichalcum_ingot",
+            registryName -> new Item(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName))));
+
     public static final DeferredItem<Item> STYGIAN_INK = ITEMS.register("stygian_ink",
             registryName -> new Item(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName))));
 
-    public static final DeferredItem<Item> AURICHALCUM_QUILL = ITEMS.register("aurichalcum_quill",
+    public static final DeferredItem<Item> ORICHALCUM_QUILL = ITEMS.register("orichalcum_quill",
             registryName -> new Item(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName))));
 
     public static void register(IEventBus eventBus) {ITEMS.register(eventBus);}

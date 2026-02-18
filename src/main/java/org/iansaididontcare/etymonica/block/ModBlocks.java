@@ -1,7 +1,9 @@
 package org.iansaididontcare.etymonica.block;
 
+import net.minecraft.util.valueproviders.UniformInt;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.DropExperienceBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
@@ -15,9 +17,17 @@ import java.util.function.Function;
 public class ModBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(Etymonica.MOD_ID);
 
-    public static final DeferredBlock<Block> AURICHALCUM_BLOCK = registerBlock("aurichalcum_block",
+    public static final DeferredBlock<Block> ORICHALCUM_ORE = registerBlock("orichalcum_ore",
+            (properties) -> new DropExperienceBlock(UniformInt.of(4, 7),
+                    properties.strength(4f).requiresCorrectToolForDrops().sound(SoundType.STONE)));
+
+    public static final DeferredBlock<Block> DEEPSLATE_ORICHALCUM_ORE = registerBlock("deepslate_orichalcum_ore",
+            (properties) -> new DropExperienceBlock(UniformInt.of(6, 9),
+                    properties.strength(5f).requiresCorrectToolForDrops().sound(SoundType.DEEPSLATE)));
+
+    public static final DeferredBlock<Block> ORICHALCUM_BLOCK = registerBlock("orichalcum_block",
             (properties) -> new Block(properties
-                    .strength(4f).requiresCorrectToolForDrops().sound(SoundType.IRON)));
+                    .strength(4f).requiresCorrectToolForDrops().sound(SoundType.COPPER)));
 
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Function<BlockBehaviour.Properties, T> function) {
         DeferredBlock<T> toReturn = BLOCKS.registerBlock(name, function);

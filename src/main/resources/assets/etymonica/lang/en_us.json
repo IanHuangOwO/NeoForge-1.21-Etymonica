@@ -1,9 +1,13 @@
 {
   "item.etymonica.etymonicon": "Etymonicon",
+  "item.etymonica.raw_orichalcum": "Raw Orichalcum",
+  "item.etymonica.orichalcum_ingot": "Orichalcum Ingot",
   "item.etymonica.stygian_ink": "Stygian Ink",
-  "item.etymonica.aurichalcum_quill": "Aurichalcum Quill",
+  "item.etymonica.orichalcum_quill": "Orichalcum Quill",
 
-  "block.etymonica.aurichalcum_block": "Aurichalcum Block",
+  "block.etymonica.orichalcum_ore": "Orichalcum Ore",
+  "block.etymonica.deepslate_orichalcum_ore": "Deepslate Orichalcum Ore",
+  "block.etymonica.orichalcum_block": "Orichalcum Block",
 
   "creativetab.etymonica.etymonica_items": "Etymonica Items",
   "creativetab.etymonica.etymonica_blocks": "Etymonica Blocks"

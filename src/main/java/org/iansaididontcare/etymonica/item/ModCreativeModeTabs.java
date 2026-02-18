@@ -22,16 +22,20 @@ public class ModCreativeModeTabs {
                     .title(Component.translatable("creativetab.etymonica.etymonica_items"))
                     .displayItems((itemDisplayParameters, output) -> {
                         output.accept(ModItems.ETYMONICON);
-                        output.accept(ModItems.AURICHALCUM_QUILL);
+                        output.accept(ModItems.RAW_ORICHALCUM);
+                        output.accept(ModItems.ORICHALCUM_INGOT);
+                        output.accept(ModItems.ORICHALCUM_QUILL);
                         output.accept(ModItems.STYGIAN_INK);
                     }).build());
 
     public static final Supplier<CreativeModeTab> ETYMONICA_BLOCK_TAB = CREATIVE_MODE_TAB.register("etmonica_blocks_tab",
-            () -> CreativeModeTab.builder().icon(() -> new ItemStack(ModBlocks.AURICHALCUM_BLOCK))
+            () -> CreativeModeTab.builder().icon(() -> new ItemStack(ModBlocks.ORICHALCUM_BLOCK))
                     .withTabsBefore(Identifier.fromNamespaceAndPath(Etymonica.MOD_ID, "etymonica_items_tab"))
                     .title(Component.translatable("creativetab.etymonica.etymonica_blocks"))
                     .displayItems((itemDisplayParameters, output) -> {
-                        output.accept(ModBlocks.AURICHALCUM_BLOCK);
+                        output.accept(ModBlocks.ORICHALCUM_ORE);
+                        output.accept(ModBlocks.DEEPSLATE_ORICHALCUM_ORE);
+                        output.accept(ModBlocks.ORICHALCUM_BLOCK);
                     }).build());
 
     public static void register(IEventBus eventBus) {CREATIVE_MODE_TAB.register(eventBus);}

@@ -1,2 +1,4 @@
-// 1.21.11	2026-02-17T22:55:49.14955	Loot Tables
-cf340bbc010b6977579a0efa550cb801a37c6b40 data/etymonica/loot_table/blocks/aurichalcum_block.json
+// 1.21.11	2026-02-18T21:05:44.9130879	Loot Tables
+a5859cf1152f4392996bcd0bb09f291811250c44 data/etymonica/loot_table/blocks/deepslate_orichalcum_ore.json
+652c06b3528f2a1be010f91420213925b9287ae0 data/etymonica/loot_table/blocks/orichalcum_block.json
+11604bee415323349b3d4583d2f64314850171ad data/etymonica/loot_table/blocks/orichalcum_ore.json

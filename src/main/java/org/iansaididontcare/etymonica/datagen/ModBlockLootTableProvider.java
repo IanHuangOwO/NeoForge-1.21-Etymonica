@@ -6,6 +6,7 @@ import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.block.Block;
 import org.iansaididontcare.etymonica.block.ModBlocks;
+import org.iansaididontcare.etymonica.item.ModItems;
 
 import java.util.Set;
 
@@ -16,7 +17,11 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
 
     @Override
     protected void generate() {
-        dropSelf(ModBlocks.AURICHALCUM_BLOCK.get());
+        add(ModBlocks.ORICHALCUM_ORE.get(),
+                block -> createOreDrop(ModBlocks.ORICHALCUM_ORE.get(), ModItems.RAW_ORICHALCUM.get()));
+        add(ModBlocks.DEEPSLATE_ORICHALCUM_ORE.get(),
+                block -> createOreDrop(ModBlocks.DEEPSLATE_ORICHALCUM_ORE.get(), ModItems.RAW_ORICHALCUM.get()));
+        dropSelf(ModBlocks.ORICHALCUM_BLOCK.get());
     }
 
     @Override

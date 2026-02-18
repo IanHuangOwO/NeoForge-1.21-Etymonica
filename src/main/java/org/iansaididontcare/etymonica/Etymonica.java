@@ -1,6 +1,5 @@
 package org.iansaididontcare.etymonica;
 
-import net.minecraft.world.item.CreativeModeTabs;
 import org.iansaididontcare.etymonica.block.ModBlocks;
 import org.iansaididontcare.etymonica.item.ModCreativeModeTabs;
 import org.iansaididontcare.etymonica.item.ModItems;
@@ -41,6 +40,7 @@ public class Etymonica {
 
         ModItems.register(modEventBus);
         ModBlocks.register(modEventBus);
+
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);
 
@@ -49,34 +49,15 @@ public class Etymonica {
     }
 
     private void commonSetup(FMLCommonSetupEvent event) {
-//        // Some common setup code
-//        LOGGER.info("HELLO FROM COMMON SETUP");
-//
-//        if (Config.LOG_DIRT_BLOCK.getAsBoolean()) {
-//            LOGGER.info("DIRT BLOCK >> {}", BuiltInRegistries.BLOCK.getKey(Blocks.DIRT));
-//        }
-//
-//        LOGGER.info("{}{}", Config.MAGIC_NUMBER_INTRODUCTION.get(), Config.MAGIC_NUMBER.getAsInt());
-//
-//        Config.ITEM_STRINGS.get().forEach((item) -> LOGGER.info("ITEM >> {}", item));
+
     }
 
-    // Add the example block item to the building blocks tab
     private void addCreative(BuildCreativeModeTabContentsEvent event) {
-        if (event.getTabKey() == CreativeModeTabs.INGREDIENTS) {
-            event.accept(ModItems.STYGIAN_INK);
-            event.accept(ModItems.AURICHALCUM_QUILL);
-        }
 
-        if (event.getTabKey() == CreativeModeTabs.BUILDING_BLOCKS) {
-            event.accept(ModBlocks.AURICHALCUM_BLOCK);
-        }
     }
 
-    // You can use SubscribeEvent and let the Event Bus discover methods to call
     @SubscribeEvent
     public void onServerStarting(ServerStartingEvent event) {
-        // Do something when the server starts
         LOGGER.info("HELLO from server starting");
     }
 }
