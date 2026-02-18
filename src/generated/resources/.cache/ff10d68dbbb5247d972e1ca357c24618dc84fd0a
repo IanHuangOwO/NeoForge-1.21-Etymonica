@@ -1,0 +1,3 @@
+// 1.21.11	2026-02-18T22:25:02.3972119	Tags for minecraft:block mod id etymonica
+49e96e7db973753f91f7632bf9cb7891241b81fd data/minecraft/tags/block/mineable/pickaxe.json
+acd3e82191ca3e55dba86a7a041d162ca1e3e350 data/minecraft/tags/block/needs_diamond_tool.json

@@ -1,0 +1,16 @@
+{
+  "type": "minecraft:crafting_shaped",
+  "category": "misc",
+  "key": {
+    "O": "etymonica:orichalcum_ingot"
+  },
+  "pattern": [
+    "OOO",
+    "OOO",
+    "OOO"
+  ],
+  "result": {
+    "count": 1,
+    "id": "etymonica:orichalcum_block"
+  }
+}

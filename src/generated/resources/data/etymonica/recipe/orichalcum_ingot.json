@@ -1,0 +1,11 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    "etymonica:orichalcum_block"
+  ],
+  "result": {
+    "count": 9,
+    "id": "etymonica:orichalcum_ingot"
+  }
+}

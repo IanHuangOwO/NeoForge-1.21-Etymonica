@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:blasting",
+  "category": "misc",
+  "cookingtime": 100,
+  "experience": 4.0,
+  "group": "orichalcum",
+  "ingredient": "etymonica:raw_orichalcum",
+  "result": {
+    "count": 1,
+    "id": "etymonica:orichalcum_ingot"
+  }
+}
