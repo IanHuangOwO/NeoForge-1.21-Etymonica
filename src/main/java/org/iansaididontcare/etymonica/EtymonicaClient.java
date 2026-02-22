@@ -7,8 +7,14 @@ import net.neoforged.fml.ModContainer;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.fml.common.Mod;
 import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
+import net.neoforged.neoforge.client.event.EntityRenderersEvent;
+import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
+import org.iansaididontcare.etymonica.block.entity.ModBlockEntities;
+import org.iansaididontcare.etymonica.block.entity.renderer.PedestalBlockEntityRenderer;
+import org.iansaididontcare.etymonica.screen.ModMenuTypes;
+import org.iansaididontcare.etymonica.screen.custom.PedestalScreen;
 
 // This class will not load on dedicated servers. Accessing client side code from here is safe.
 @Mod(value = Etymonica.MOD_ID, dist = Dist.CLIENT)
@@ -27,5 +33,15 @@ public class EtymonicaClient {
         // Some client setup code
         Etymonica.LOGGER.info("HELLO FROM CLIENT SETUP");
         Etymonica.LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
+    }
+
+    @SubscribeEvent
+    public static void registerBER(EntityRenderersEvent.RegisterRenderers event) {
+        event.registerBlockEntityRenderer(ModBlockEntities.PEDESTAL_BE.get(), PedestalBlockEntityRenderer::new);
+    }
+
+    @SubscribeEvent
+    public static void registerScreens(RegisterMenuScreensEvent event) {
+        event.register(ModMenuTypes.PEDESTAL_MENU.get(), PedestalScreen::new);
     }
 }

@@ -10,6 +10,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.iansaididontcare.etymonica.Etymonica;
+import org.iansaididontcare.etymonica.block.custom.PedestalBlock;
 import org.iansaididontcare.etymonica.item.ModItems;
 
 import java.util.function.Function;
@@ -17,17 +18,12 @@ import java.util.function.Function;
 public class ModBlocks {
     public static final DeferredRegister.Blocks BLOCKS = DeferredRegister.createBlocks(Etymonica.MOD_ID);
 
-    public static final DeferredBlock<Block> ORICHALCUM_ORE = registerBlock("orichalcum_ore",
-            (properties) -> new DropExperienceBlock(UniformInt.of(4, 7),
-                    properties.strength(4f).requiresCorrectToolForDrops().sound(SoundType.STONE)));
-
-    public static final DeferredBlock<Block> DEEPSLATE_ORICHALCUM_ORE = registerBlock("deepslate_orichalcum_ore",
-            (properties) -> new DropExperienceBlock(UniformInt.of(6, 9),
-                    properties.strength(5f).requiresCorrectToolForDrops().sound(SoundType.DEEPSLATE)));
-
     public static final DeferredBlock<Block> ORICHALCUM_BLOCK = registerBlock("orichalcum_block",
             (properties) -> new Block(properties
                     .strength(4f).requiresCorrectToolForDrops().sound(SoundType.COPPER)));
+
+    public static final DeferredBlock<Block> PEDESTAL = registerBlock("pedestal",
+            (properties) -> new PedestalBlock(properties.noOcclusion()));
 
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Function<BlockBehaviour.Properties, T> function) {
         DeferredBlock<T> toReturn = BLOCKS.registerBlock(name, function);

@@ -17,11 +17,8 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
 
     @Override
     protected void generate() {
-        add(ModBlocks.ORICHALCUM_ORE.get(),
-                block -> createOreDrop(ModBlocks.ORICHALCUM_ORE.get(), ModItems.RAW_ORICHALCUM.get()));
-        add(ModBlocks.DEEPSLATE_ORICHALCUM_ORE.get(),
-                block -> createOreDrop(ModBlocks.DEEPSLATE_ORICHALCUM_ORE.get(), ModItems.RAW_ORICHALCUM.get()));
         dropSelf(ModBlocks.ORICHALCUM_BLOCK.get());
+        dropSelf(ModBlocks.PEDESTAL.get());
     }
 
     @Override

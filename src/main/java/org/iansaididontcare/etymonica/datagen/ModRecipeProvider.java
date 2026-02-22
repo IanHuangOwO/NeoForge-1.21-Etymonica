@@ -38,8 +38,7 @@ public class ModRecipeProvider extends RecipeProvider {
 
     @Override
     protected void buildRecipes() {
-        List<ItemLike> ORICHALCUM_SMELTABLES = List.of(ModItems.RAW_ORICHALCUM,
-                ModBlocks.ORICHALCUM_ORE, ModBlocks.DEEPSLATE_ORICHALCUM_ORE);
+        List<ItemLike> ORICHALCUM_SMELTABLES = List.of(ModItems.RAW_ORICHALCUM);
 
         shaped(RecipeCategory.MISC, ModBlocks.ORICHALCUM_BLOCK.get())
                 .pattern("OOO")

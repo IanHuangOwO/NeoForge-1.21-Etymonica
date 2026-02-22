@@ -11,6 +11,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.data.PackOutput;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.level.block.Block;
+import org.jspecify.annotations.NonNull;
 
 import java.util.stream.Stream;
 
@@ -25,22 +26,18 @@ public class ModModelProvider extends ModelProvider {
         itemModels.generateFlatItem(ModItems.ETYMONICON.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ModItems.RAW_ORICHALCUM.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ModItems.ORICHALCUM_INGOT.get(), ModelTemplates.FLAT_ITEM);
-        itemModels.generateFlatItem(ModItems.ORICHALCUM_QUILL.get(), ModelTemplates.FLAT_ITEM);
-        itemModels.generateFlatItem(ModItems.STYGIAN_INK.get(), ModelTemplates.FLAT_ITEM);
 
         /* BLOCKS */
-        blockModels.createTrivialCube(ModBlocks.ORICHALCUM_ORE.get());
-        blockModels.createTrivialCube(ModBlocks.DEEPSLATE_ORICHALCUM_ORE.get());
         blockModels.createTrivialCube(ModBlocks.ORICHALCUM_BLOCK.get());
     }
 
     @Override
-    protected Stream<? extends Holder<Block>> getKnownBlocks() {
-        return ModBlocks.BLOCKS.getEntries().stream();
+    protected @NonNull Stream<? extends Holder<Block>> getKnownBlocks() {
+        return ModBlocks.BLOCKS.getEntries().stream().filter(x -> !x.is(ModBlocks.PEDESTAL));
     }
 
     @Override
-    protected Stream<? extends Holder<Item>> getKnownItems() {
-        return ModItems.ITEMS.getEntries().stream();
+    protected @NonNull Stream<? extends Holder<Item>> getKnownItems() {
+        return ModItems.ITEMS.getEntries().stream().filter(x -> x.get() != ModBlocks.PEDESTAL.asItem());
     }
 }
