@@ -29,6 +29,7 @@ public class ModModelProvider extends ModelProvider {
 
         /* BLOCKS */
         blockModels.createTrivialCube(ModBlocks.ORICHALCUM_BLOCK.get());
+        blockModels.createTrivialCube(ModBlocks.GROWTH_CHAMBER.get());
     }
 
     @Override

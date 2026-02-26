@@ -1,16 +1,13 @@
-// 1.21.11	2026-02-21T16:54:44.1423495	Model Definitions - etymonica
-6977d7ac28619ab445c965cc732a34c6397b1b70 assets/etymonica/blockstates/deepslate_orichalcum_ore.json
+// 1.21.11	2026-02-23T09:42:40.3377091	Model Definitions - etymonica
+738c7f833102cd8ee82859dd35f3515ad6f99eb3 assets/etymonica/blockstates/growth_chamber.json
 cc09645c5912cb9ecc15b23ab7e6f0f3f42b5f8f assets/etymonica/blockstates/orichalcum_block.json
-93c000ad14705e719b0f9cbef27ccec13e28c6cf assets/etymonica/blockstates/orichalcum_ore.json
-5f314e999827d7ce7eeb745c5269a2efc22c4b6a assets/etymonica/items/deepslate_orichalcum_ore.json
 a12457cc4631f7fc7be24a08c7389b60c02b9126 assets/etymonica/items/etymonicon.json
+38b625c3a5475357c6be9924bec51b92ecfa66f2 assets/etymonica/items/growth_chamber.json
 f4f5605f24b470bc07ca3894571adff1ef752076 assets/etymonica/items/orichalcum_block.json
 4fc5a7bdbb37a7c5415cc5777ad6a8806f92f64c assets/etymonica/items/orichalcum_ingot.json
-2b4cb79071aaa8fc786ef02cdb731949cb902065 assets/etymonica/items/orichalcum_ore.json
 72df22b8e4c7b82ef9d7519b717cd0d7ab10162d assets/etymonica/items/raw_orichalcum.json
-4e11106a6e6c893a8f319e1a9febbce69c9d53e2 assets/etymonica/models/block/deepslate_orichalcum_ore.json
+434adc3ca02066e05948afc30266ceeb3d9307bf assets/etymonica/models/block/growth_chamber.json
 0c46bb9fc9d2ff1a24c64c66c6fc02f763f51fce assets/etymonica/models/block/orichalcum_block.json
-8946507e8b8070bfb592e44763f80b21e39374c3 assets/etymonica/models/block/orichalcum_ore.json
 72c62ebe353ffc4941df8d566cb4ca7f50e9cb98 assets/etymonica/models/item/etymonicon.json
 b274fd600c5384479bdc5b027fafe838863f2733 assets/etymonica/models/item/orichalcum_ingot.json
 f0c5ea8e8629e9f8565e7e5659f9b63ac85b1ba5 assets/etymonica/models/item/raw_orichalcum.json

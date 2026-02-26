@@ -19,6 +19,7 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
     protected void generate() {
         dropSelf(ModBlocks.ORICHALCUM_BLOCK.get());
         dropSelf(ModBlocks.PEDESTAL.get());
+        dropSelf(ModBlocks.GROWTH_CHAMBER.get());
     }
 
     @Override

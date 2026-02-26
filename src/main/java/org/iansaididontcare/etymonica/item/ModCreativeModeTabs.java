@@ -31,7 +31,9 @@ public class ModCreativeModeTabs {
                     .withTabsBefore(Identifier.fromNamespaceAndPath(Etymonica.MOD_ID, "etymonica_items_tab"))
                     .title(Component.translatable("creativetab.etymonica.etymonica_blocks"))
                     .displayItems((itemDisplayParameters, output) -> {
+                        output.accept(ModBlocks.ORICHALCUM_BLOCK);
                         output.accept(ModBlocks.PEDESTAL);
+                        output.accept(ModBlocks.GROWTH_CHAMBER);
                     }).build());
 
     public static void register(IEventBus eventBus) {CREATIVE_MODE_TAB.register(eventBus);}

@@ -10,6 +10,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.iansaididontcare.etymonica.Etymonica;
+import org.iansaididontcare.etymonica.block.custom.GrowthChamberBlock;
 import org.iansaididontcare.etymonica.block.custom.PedestalBlock;
 import org.iansaididontcare.etymonica.item.ModItems;
 
@@ -24,6 +25,9 @@ public class ModBlocks {
 
     public static final DeferredBlock<Block> PEDESTAL = registerBlock("pedestal",
             (properties) -> new PedestalBlock(properties.noOcclusion()));
+
+    public static final DeferredBlock<Block> GROWTH_CHAMBER = registerBlock("growth_chamber",
+            GrowthChamberBlock::new);
 
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Function<BlockBehaviour.Properties, T> function) {
         DeferredBlock<T> toReturn = BLOCKS.registerBlock(name, function);

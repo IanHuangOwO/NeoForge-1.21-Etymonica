@@ -14,6 +14,7 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import org.iansaididontcare.etymonica.block.entity.ModBlockEntities;
 import org.iansaididontcare.etymonica.block.entity.renderer.PedestalBlockEntityRenderer;
 import org.iansaididontcare.etymonica.screen.ModMenuTypes;
+import org.iansaididontcare.etymonica.screen.custom.GrowthChamberScreen;
 import org.iansaididontcare.etymonica.screen.custom.PedestalScreen;
 
 // This class will not load on dedicated servers. Accessing client side code from here is safe.
@@ -43,5 +44,6 @@ public class EtymonicaClient {
     @SubscribeEvent
     public static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenuTypes.PEDESTAL_MENU.get(), PedestalScreen::new);
+        event.register(ModMenuTypes.GROWTH_CHAMBER_MENU.get(), GrowthChamberScreen::new);
     }
 }

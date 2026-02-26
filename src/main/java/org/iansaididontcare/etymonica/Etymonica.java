@@ -14,6 +14,7 @@ import org.iansaididontcare.etymonica.block.entity.ModBlockEntities;
 import org.iansaididontcare.etymonica.block.entity.renderer.PedestalBlockEntityRenderer;
 import org.iansaididontcare.etymonica.item.ModCreativeModeTabs;
 import org.iansaididontcare.etymonica.item.ModItems;
+import org.iansaididontcare.etymonica.recipe.ModRecipes;
 import org.iansaididontcare.etymonica.screen.ModMenuTypes;
 import org.iansaididontcare.etymonica.screen.custom.PedestalScreen;
 import org.slf4j.Logger;
@@ -55,8 +56,8 @@ public class Etymonica {
         ModBlocks.register(modEventBus);
 
         ModBlockEntities.register((modEventBus));
-
         ModMenuTypes.register(modEventBus);
+        ModRecipes.register(modEventBus);
 
         // Register the item to a creative tab
         modEventBus.addListener(this::addCreative);

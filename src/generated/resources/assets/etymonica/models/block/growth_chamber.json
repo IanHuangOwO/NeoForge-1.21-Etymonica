@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "etymonica:block/orichalcum_ore"
+    "all": "etymonica:block/growth_chamber"
   }
 }
