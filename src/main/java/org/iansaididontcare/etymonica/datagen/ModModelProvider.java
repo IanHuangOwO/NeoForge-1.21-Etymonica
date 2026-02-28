@@ -27,6 +27,7 @@ public class ModModelProvider extends ModelProvider {
         itemModels.generateFlatItem(ModItems.RAW_ORICHALCUM.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ModItems.ORICHALCUM_INGOT.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ModItems.TUNING_FORK.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(ModItems.QUILL_TIER0.get(), ModelTemplates.FLAT_ITEM);
 
         /* BLOCKS */
         blockModels.createTrivialCube(ModBlocks.ORICHALCUM_BLOCK.get());

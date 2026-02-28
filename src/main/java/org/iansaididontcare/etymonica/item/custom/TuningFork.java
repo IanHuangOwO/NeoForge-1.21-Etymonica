@@ -18,6 +18,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.iansaididontcare.etymonica.block.entity.EnchantingTableBlockEntity;
+import org.iansaididontcare.etymonica.enchanting.EnchantingTableMessages;
 import org.iansaididontcare.etymonica.tag.ModBlockTags;
 import org.jetbrains.annotations.Nullable;
 
@@ -74,20 +75,6 @@ public class TuningFork extends Item {
                 return;
             }
 
-            int cap = Math.max(0, table.getScanCap());
-            int linked = table.getLinkedModifiersCount();
-
-            if (table.isRelinkInProgress()) {
-                int total = Math.max(1, table.getScanTotalPositions());
-                int done = Math.min(total, table.getScanScannedPositions());
-                int pct = (int) Math.round(done * 100.0 / total);
-
-                String capText = cap > 0 ? (linked + "/" + cap) : String.valueOf(linked);
-                tooltipAdder.accept(Component.literal("Relinking: " + pct + "% (" + capText + ")").withStyle(ChatFormatting.YELLOW));
-            } else {
-                String capText = cap > 0 ? (linked + "/" + cap) : String.valueOf(linked);
-                tooltipAdder.accept(Component.literal("Linked: " + capText).withStyle(ChatFormatting.AQUA));
-            }
         } catch (NoClassDefFoundError ignored) {
             // Dedicated server safety: client classes are not present there.
         }
@@ -115,16 +102,16 @@ public class TuningFork extends Item {
 
             if (!alreadyBoundToThisTable) {
                 bind(stack, level, clickedPos);
-                player.displayClientMessage(Component.literal("Tuning Fork bound to table at " + clickedPos), true);
+                player.displayClientMessage(Component.translatable("message.etymonica.tuning_fork.bound", clickedPos.toShortString()), true);
                 return InteractionResult.SUCCESS;
             }
 
             // Already bound to this table -> toggle relink (start or cancel)
             BlockEntity be = level.getBlockEntity(clickedPos);
             if (be instanceof EnchantingTableBlockEntity table) {
-                table.beginOrCancelRelinkScan(player);
+                player.displayClientMessage(EnchantingTableMessages.action(table.beginOrCancelRelinkScan(player)), true);
             } else {
-                player.displayClientMessage(Component.literal("Could not find table block entity."), true);
+                player.displayClientMessage(Component.translatable("message.etymonica.tuning_fork.table_missing"), true);
             }
             return InteractionResult.SUCCESS;
         }
@@ -136,27 +123,29 @@ public class TuningFork extends Item {
 
         Bound bound = getBound(stack);
         if (bound == null) {
-            if (player != null) player.displayClientMessage(Component.literal("Tuning Fork is not bound to a table."), true);
+            if (player != null) player.displayClientMessage(Component.translatable("message.etymonica.tuning_fork.not_bound"), true);
             return InteractionResult.SUCCESS;
         }
 
         // dimension check (stored as string)
         String hereDim = level.dimension().toString();
         if (!bound.dimId().equals(hereDim)) {
-            if (player != null) player.displayClientMessage(Component.literal("Bound table is in a different dimension."), true);
+            if (player != null) player.displayClientMessage(Component.translatable("message.etymonica.tuning_fork.wrong_dimension"), true);
             return InteractionResult.SUCCESS;
         }
 
         BlockEntity be = level.getBlockEntity(bound.pos());
         if (!(be instanceof EnchantingTableBlockEntity table)) {
-            if (player != null) player.displayClientMessage(Component.literal("Bound table is missing. Clearing bind."), true);
+            if (player != null) player.displayClientMessage(Component.translatable("message.etymonica.tuning_fork.bound_missing"), true);
             clearBind(stack);
             return InteractionResult.SUCCESS;
         }
 
-        boolean added = table.tryLinkModifier((net.minecraft.server.level.ServerLevel) level, clickedPos, player);
-        if (added && player != null) {
-            player.displayClientMessage(Component.literal("Linked modifier at " + clickedPos), true);
+        if (player != null) {
+            player.displayClientMessage(
+                    EnchantingTableMessages.action(table.tryLinkModifier((net.minecraft.server.level.ServerLevel) level, clickedPos)),
+                    true
+            );
         }
         return InteractionResult.SUCCESS;
     }
@@ -168,7 +157,7 @@ public class TuningFork extends Item {
         // Shift + right-click air => clear bind
         if (!level.isClientSide() && player.isCrouching()) {
             clearBind(stack);
-            player.displayClientMessage(Component.literal("Tuning Fork unbound."), true);
+            player.displayClientMessage(Component.translatable("message.etymonica.tuning_fork.unbound"), true);
             return InteractionResult.SUCCESS;
         }
 

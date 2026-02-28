@@ -7,6 +7,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.iansaididontcare.etymonica.Etymonica;
+import org.iansaididontcare.etymonica.item.custom.QuillTier0;
 import org.iansaididontcare.etymonica.item.custom.TuningFork;
 
 public class ModItems {
@@ -23,6 +24,9 @@ public class ModItems {
 
     public static final DeferredItem<Item> TUNING_FORK = ITEMS.register("tuning_fork",
             registryName -> new TuningFork(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName))));
+
+    public static final DeferredItem<Item> QUILL_TIER0 = ITEMS.register("quill_tier0",
+            registryName -> new QuillTier0(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName))));
 
     public static void register(IEventBus eventBus) {ITEMS.register(eventBus);}
 }

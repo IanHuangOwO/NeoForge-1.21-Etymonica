@@ -25,6 +25,7 @@ public class ModCreativeModeTabs {
                         output.accept(ModItems.RAW_ORICHALCUM);
                         output.accept(ModItems.ORICHALCUM_INGOT);
                         output.accept(ModItems.TUNING_FORK);
+                        output.accept(ModItems.QUILL_TIER0);
                     }).build());
 
     public static final Supplier<CreativeModeTab> ETYMONICA_BLOCK_TAB = CREATIVE_MODE_TAB.register("etmonica_blocks_tab",

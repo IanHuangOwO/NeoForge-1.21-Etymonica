@@ -22,6 +22,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import org.iansaididontcare.etymonica.block.entity.enchanting.EnchantPowerCalculator;
+import org.iansaididontcare.etymonica.block.entity.enchanting.EnchantRelinkScanner;
+import org.iansaididontcare.etymonica.block.entity.enchanting.EnchantingTableDataSlots;
 import org.iansaididontcare.etymonica.enchanting.api.EnchantingTableModifierStats;
 import org.iansaididontcare.etymonica.enchanting.api.EnchantingTableStats;
 import org.iansaididontcare.etymonica.enchanting.data.EnchantingTableData;
@@ -36,6 +39,26 @@ import java.util.UUID;
 
 public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvider {
     private static final int BASE_PROGRESS_TICKS = 640;
+    private enum Mode {
+        IDLE,
+        RELINK,
+        ENCHANT
+    }
+    public enum TableActionResult {
+        ENCHANT_STARTED,
+        ENCHANT_BLOCKED,
+        RELINK_STARTED,
+        RELINK_CANCELLED,
+        RELINK_BLOCKED,
+        MODIFIER_LINKED,
+        MODIFIER_UNLINKED,
+        LINK_BLOCKED_NO_CAP,
+        LINK_BLOCKED_CAP_REACHED,
+        LINK_BLOCKED_NO_RADIUS,
+        LINK_BLOCKED_TOO_FAR,
+        LINK_BLOCKED_INVALID_BLOCK,
+        LINK_BLOCKED_ALREADY_LINKED
+    }
 
     public static final int SLOT_FUTURE = 0;
     public static final int SLOT_ITEM = 1;
@@ -52,7 +75,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         }
     };
 
-    private boolean running = false;
+    private Mode mode = Mode.IDLE;
     private int progress = 0;
     private int maxProgress = BASE_PROGRESS_TICKS;
 
@@ -67,38 +90,35 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
     private final Set<BlockPos> linkedModifiers = new HashSet<>();
 
     // Scan state (server) + synced progress (via data)
-    private boolean relinkInProgress = false;
-    private int scanRadius = 0;
-    private int scanMaxDistSq = 0;
     private int scanCap = 0;
-
-    // cube iterator state
-    private int scanX = 0;
-    private int scanY = 0;
-    private int scanZ = 0;
+    private @Nullable EnchantRelinkScanner relinkSession = null;
 
     private int scanTotalPositions = 0;   // cube total
     private int scanScannedPositions = 0; // cube scanned so far
     private int scanLinkedCount = 0;      // linked so far
-
     private @Nullable UUID relinkRequester = null;
 
     private final ContainerData data = new ContainerData() {
         @Override
         public int get(int index) {
             return switch (index) {
-                case 0 -> progress;
-                case 1 -> maxProgress;
-                case 2 -> currentPower;
-                case 3 -> (int) (currentSpeed * 1000f);
-                case 4 -> (int) (currentStability * 1000f);
-                case 5 -> (int) (currentEfficiency * 1000f);
+                case EnchantingTableDataSlots.PROGRESS -> progress;
+                case EnchantingTableDataSlots.MAX_PROGRESS -> maxProgress;
+                case EnchantingTableDataSlots.POWER -> currentPower;
+                case EnchantingTableDataSlots.SPEED_MILLI -> (int) (currentSpeed * 1000f);
+                case EnchantingTableDataSlots.STABILITY_MILLI -> (int) (currentStability * 1000f);
+                case EnchantingTableDataSlots.EFFICIENCY_MILLI -> (int) (currentEfficiency * 1000f);
 
                 // scan progress for client UI
-                case 6 -> relinkInProgress ? 1 : 0;
-                case 7 -> scanTotalPositions;
-                case 8 -> scanScannedPositions;
-                case 9 -> scanLinkedCount;
+                case EnchantingTableDataSlots.RELINK_FLAG -> mode == Mode.RELINK ? 1 : 0;
+                case EnchantingTableDataSlots.SCAN_TOTAL -> scanTotalPositions;
+                case EnchantingTableDataSlots.SCAN_DONE -> scanScannedPositions;
+                case EnchantingTableDataSlots.SCAN_LINKED -> scanLinkedCount;
+
+                // enchanting running flag for client UI
+                case EnchantingTableDataSlots.ENCHANT_FLAG -> mode == Mode.ENCHANT ? 1 : 0;
+                // canonical machine mode for UI/menu logic
+                case EnchantingTableDataSlots.MODE -> mode.ordinal();
 
                 default -> 0;
             };
@@ -107,18 +127,39 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         @Override
         public void set(int index, int value) {
             switch (index) {
-                case 0 -> progress = value;
-                case 1 -> maxProgress = value;
-                case 2 -> currentPower = value;
-                case 3 -> currentSpeed = value / 1000f;
-                case 4 -> currentStability = value / 1000f;
-                case 5 -> currentEfficiency = value / 1000f;
+                case EnchantingTableDataSlots.PROGRESS -> progress = value;
+                case EnchantingTableDataSlots.MAX_PROGRESS -> maxProgress = value;
+                case EnchantingTableDataSlots.POWER -> currentPower = value;
+                case EnchantingTableDataSlots.SPEED_MILLI -> currentSpeed = value / 1000f;
+                case EnchantingTableDataSlots.STABILITY_MILLI -> currentStability = value / 1000f;
+                case EnchantingTableDataSlots.EFFICIENCY_MILLI -> currentEfficiency = value / 1000f;
 
                 // client receives these from server; allow setting for display
-                case 6 -> relinkInProgress = value != 0;
-                case 7 -> scanTotalPositions = value;
-                case 8 -> scanScannedPositions = value;
-                case 9 -> scanLinkedCount = value;
+                case EnchantingTableDataSlots.RELINK_FLAG -> {
+                    if (value != 0) {
+                        mode = Mode.RELINK;
+                    } else if (mode == Mode.RELINK) {
+                        mode = Mode.IDLE;
+                    }
+                }
+                case EnchantingTableDataSlots.SCAN_TOTAL -> scanTotalPositions = value;
+                case EnchantingTableDataSlots.SCAN_DONE -> scanScannedPositions = value;
+                case EnchantingTableDataSlots.SCAN_LINKED -> scanLinkedCount = value;
+
+                case EnchantingTableDataSlots.ENCHANT_FLAG -> {
+                    if (value != 0) {
+                        mode = Mode.ENCHANT;
+                    } else if (mode == Mode.ENCHANT) {
+                        mode = Mode.IDLE;
+                    }
+                }
+                case EnchantingTableDataSlots.MODE -> {
+                    if (value < 0 || value >= Mode.values().length) {
+                        mode = Mode.IDLE;
+                    } else {
+                        mode = Mode.values()[value];
+                    }
+                }
 
                 default -> {
                 }
@@ -127,7 +168,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
 
         @Override
         public int getCount() {
-            return 10;
+            return EnchantingTableDataSlots.COUNT;
         }
     };
 
@@ -151,67 +192,72 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
     }
 
     /** Shift-right-click: start scan; shift-right-click again: cancel scan. */
-    public void beginOrCancelRelinkScan(@Nullable Player requester) {
-        if (level == null || level.isClientSide()) return;
+    public TableActionResult beginOrCancelRelinkScan(@Nullable Player requester) {
+        if (level == null || level.isClientSide()) return TableActionResult.RELINK_BLOCKED;
 
-        if (relinkInProgress) {
-            cancelRelinkScan((ServerLevel) level, requester);
-            return;
+        if (mode == Mode.RELINK) {
+            cancelRelinkScan((ServerLevel) level);
+            return TableActionResult.RELINK_CANCELLED;
+        }
+        if (mode == Mode.ENCHANT) {
+            return TableActionResult.RELINK_BLOCKED;
         }
 
         String tierId = getTierIdFromState(level, getBlockState());
         EnchantingTableStats base = EnchantingTableData.getTier(tierId);
 
-        scanRadius = base.linkRadius();
+        int scanRadius = base.linkRadius();
         scanCap = base.maxLinkedModifiers();
-        scanMaxDistSq = scanRadius * scanRadius;
+        relinkSession = new EnchantRelinkScanner(scanRadius, scanCap);
 
         linkedModifiers.clear();
         scanLinkedCount = 0;
 
-        // iterate offsets from -r..r
-        scanX = -scanRadius;
-        scanY = -scanRadius;
-        scanZ = -scanRadius;
-
-        int side = (scanRadius * 2) + 1;
-        scanTotalPositions = side * side * side;
-        scanScannedPositions = 0;
-
-        relinkInProgress = scanRadius > 0 && scanCap > 0;
-        relinkRequester = requester != null ? requester.getUUID() : null;
-
-        if (requester != null) {
-            requester.displayClientMessage(Component.literal("Relink started..."), true);
+        if (scanRadius <= 0 || scanCap <= 0) {
+            mode = Mode.IDLE;
+            relinkSession = null;
+            relinkRequester = null;
+            scanTotalPositions = 0;
+            scanScannedPositions = 0;
+            setChanged();
+            level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+            return TableActionResult.RELINK_BLOCKED;
         }
+
+        scanTotalPositions = relinkSession.getTotalPositions();
+        scanScannedPositions = relinkSession.getScannedPositions();
+
+        mode = Mode.RELINK;
+        relinkRequester = requester != null ? requester.getUUID() : null;
 
         setChanged();
         level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+        return TableActionResult.RELINK_STARTED;
     }
 
-    private void cancelRelinkScan(ServerLevel level, @Nullable Player requester) {
-        relinkInProgress = false;
-        relinkRequester = null;
-
-        if (requester != null) {
-            requester.displayClientMessage(Component.literal("Relink cancelled."), true);
+    private void cancelRelinkScan(ServerLevel level) {
+        mode = Mode.IDLE;
+        if (relinkSession != null) {
+            scanScannedPositions = relinkSession.getScannedPositions();
         }
+        relinkSession = null;
+        relinkRequester = null;
 
         setChanged();
         level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
     }
 
     public void tickServer(Level level, BlockPos pos, BlockState state) {
-        if (relinkInProgress) {
+        if (mode == Mode.RELINK) {
             advanceRelinkScan((ServerLevel) level);
         }
 
         if (recomputeCooldownTicks-- <= 0) {
             recomputeCooldownTicks = 20;
-            recomputeStatsNow(level, pos, state);
+            recomputeStatsNow(level, state);
         }
 
-        if (!running) return;
+        if (mode != Mode.ENCHANT) return;
 
         if (!hasValidInput()) {
             stopEnchanting();
@@ -228,69 +274,45 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
     }
 
     private void advanceRelinkScan(ServerLevel level) {
+        if (relinkSession == null || !relinkSession.isActive()) {
+            mode = Mode.IDLE;
+            relinkSession = null;
+            return;
+        }
+
         int budget = SCAN_POSITIONS_PER_TICK;
 
-        while (budget-- > 0 && relinkInProgress) {
-            // finished cube
-            if (scanX > scanRadius) {
-                relinkInProgress = false;
-
-                requestUpdateStatsNow();
-
-                if (relinkRequester != null) {
-                    Player p = level.getPlayerByUUID(relinkRequester);
-                    if (p != null) {
-                        p.displayClientMessage(
-                                Component.literal("Relink complete: " + scanLinkedCount + " blocks linked."),
-                                true
-                        );
-                    }
-                }
-                relinkRequester = null;
-
-                setChanged();
-                level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
-                return;
-            }
-
-            // capture current offsets for this step
-            int dx = scanX;
-            int dy = scanY;
-            int dz = scanZ;
-
-            BlockPos target = worldPosition.offset(dx, dy, dz);
-
-            // advance iterator (z -> y -> x)
-            scanZ++;
-            if (scanZ > scanRadius) {
-                scanZ = -scanRadius;
-                scanY++;
-                if (scanY > scanRadius) {
-                    scanY = -scanRadius;
-                    scanX++;
-                }
-            }
-
-            scanScannedPositions++;
-
-            if (dx == 0 && dy == 0 && dz == 0) continue;
-
-            // sphere filter
-            int d2 = dx * dx + dy * dy + dz * dz;
-            if (d2 > scanMaxDistSq) continue;
-
-            if (scanLinkedCount >= scanCap) {
-                // cap reached: finish early
-                scanX = scanRadius + 1;
-                continue;
-            }
-
+        while (budget-- > 0 && mode == Mode.RELINK) {
+            BlockPos target = relinkSession.nextCandidate(worldPosition, scanLinkedCount);
+            scanScannedPositions = relinkSession.getScannedPositions();
+            if (target == null) break;
             BlockState st = level.getBlockState(target);
             if (!st.is(ModBlockTags.ENCHANTING_TABLE_MODIFIERS)) continue;
 
-            if (linkedModifiers.add(target.immutable())) {
-                scanLinkedCount++;
+            tryAddLinkedModifier(target);
+        }
+
+        scanTotalPositions = relinkSession.getTotalPositions();
+        scanScannedPositions = relinkSession.getScannedPositions();
+        scanCap = relinkSession.getCap();
+
+        if (!relinkSession.isActive()) {
+            mode = Mode.IDLE;
+            relinkSession = null;
+            if (relinkRequester != null) {
+                Player requester = level.getPlayerByUUID(relinkRequester);
+                if (requester != null) {
+                    requester.displayClientMessage(
+                            Component.translatable("message.etymonica.relink.completed", scanLinkedCount),
+                            true
+                    );
+                }
             }
+            relinkRequester = null;
+            requestUpdateStatsNow();
+            setChanged();
+            level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
+            return;
         }
 
         // keep client UI updated occasionally (cheap enough)
@@ -300,23 +322,25 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         }
     }
 
-    public void requestStart() {
-        if (!hasValidInput()) return;
-        running = true;
+    public TableActionResult requestStartEnchanting() {
+        if (mode != Mode.IDLE) return TableActionResult.ENCHANT_BLOCKED;
+        if (!hasValidInput()) return TableActionResult.ENCHANT_BLOCKED;
+        mode = Mode.ENCHANT;
         progress = 0;
         setChanged();
+        return TableActionResult.ENCHANT_STARTED;
     }
 
     public void requestUpdateStatsNow() {
         if (level == null || level.isClientSide()) return;
         recomputeCooldownTicks = 0;
-        recomputeStatsNow(level, worldPosition, getBlockState());
+        recomputeStatsNow(level, getBlockState());
         level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
         setChanged();
     }
 
     private void stopEnchanting() {
-        running = false;
+        mode = Mode.IDLE;
         progress = 0;
         setChanged();
     }
@@ -344,7 +368,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         itemHandler.setStackInSlot(SLOT_ITEM, enchanted);
     }
 
-    private void recomputeStatsNow(Level level, BlockPos origin, BlockState state) {
+    private void recomputeStatsNow(Level level, BlockState state) {
         String tierId = getTierIdFromState(level, state);
         EnchantingTableStats base = EnchantingTableData.getTier(tierId);
 
@@ -354,7 +378,9 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         currentStability = EnchantingTableStats.clamp01(base.stability() + modifiers.stability());
         currentEfficiency = EnchantingTableStats.clamp01(base.efficiency() + modifiers.efficiency());
 
-        currentPower = Math.max(0, base.enchantingPowerCap());
+        int bookshelfPower = EnchantPowerCalculator.computeBookshelfPower(level, linkedModifiers);
+        currentPower = Math.max(0, Math.min(bookshelfPower, base.enchantingPowerCap()));
+        scanCap = Math.max(0, base.maxLinkedModifiers());
         maxProgress = Math.max(1, Math.round(BASE_PROGRESS_TICKS * (1.0f - currentSpeed)));
     }
 
@@ -380,78 +406,65 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         return new EnchantingTableModifierStats(speed, stability, efficiency);
     }
 
-    public boolean isRelinkInProgress() {
-        return relinkInProgress;
-    }
-
-    public int getLinkedModifiersCount() {
-        return linkedModifiers.size();
-    }
-
-    public int getScanTotalPositions() {
-        return scanTotalPositions;
-    }
-
-    public int getScanScannedPositions() {
-        return scanScannedPositions;
-    }
-
-    public int getScanLinkedCount() {
-        return scanLinkedCount;
-    }
-
-    public int getScanCap() {
-        return scanCap;
-    }
-
     private EnchantingTableStats getCurrentTierStats(ServerLevel level) {
         String tierId = getTierIdFromState(level, getBlockState());
         return EnchantingTableData.getTier(tierId);
     }
 
-    public int getMaxLinkedModifiers(ServerLevel level) {
-        return getCurrentTierStats(level).maxLinkedModifiers();
-    }
-
-    /** Manual add from tuning fork. Returns true if it was added. */
-    public boolean tryLinkModifier(ServerLevel level, BlockPos modifierPos, @Nullable Player requester) {
+    /** Manual add from tuning fork. */
+    public TableActionResult tryLinkModifier(ServerLevel level, BlockPos modifierPos) {
         EnchantingTableStats stats = getCurrentTierStats(level);
 
         int cap = stats.maxLinkedModifiers();
         if (cap <= 0) {
-            if (requester != null) requester.displayClientMessage(Component.literal("This table cannot link modifiers."), true);
-            return false;
+            return TableActionResult.LINK_BLOCKED_NO_CAP;
         }
         if (linkedModifiers.size() >= cap) {
-            if (requester != null) requester.displayClientMessage(Component.literal("Linked modifier list is full."), true);
-            return false;
+            return TableActionResult.LINK_BLOCKED_CAP_REACHED;
         }
 
         int radius = stats.linkRadius();
         if (radius <= 0) {
-            if (requester != null) requester.displayClientMessage(Component.literal("This table has no link radius."), true);
-            return false;
+            return TableActionResult.LINK_BLOCKED_NO_RADIUS;
         }
 
         int maxDistSq = radius * radius;
         if (modifierPos.distSqr(worldPosition) > maxDistSq) {
-            if (requester != null) requester.displayClientMessage(Component.literal("This block is too far away from the table."), true);
-            return false;
+            return TableActionResult.LINK_BLOCKED_TOO_FAR;
         }
 
         BlockState st = level.getBlockState(modifierPos);
         if (!st.is(ModBlockTags.ENCHANTING_TABLE_MODIFIERS)) {
-            if (requester != null) requester.displayClientMessage(Component.literal("This block is not a valid modifier."), true);
-            return false;
+            return TableActionResult.LINK_BLOCKED_INVALID_BLOCK;
         }
 
+        if (linkedModifiers.contains(modifierPos)) {
+            unlinkModifier(modifierPos);
+            requestUpdateStatsNow();
+            return TableActionResult.MODIFIER_UNLINKED;
+        }
+
+        if (tryAddLinkedModifier(modifierPos)) {
+            requestUpdateStatsNow();
+            return TableActionResult.MODIFIER_LINKED;
+        }
+
+        return TableActionResult.LINK_BLOCKED_ALREADY_LINKED;
+    }
+
+    private boolean tryAddLinkedModifier(BlockPos modifierPos) {
         boolean added = linkedModifiers.add(modifierPos.immutable());
         if (added) {
-            scanLinkedCount = linkedModifiers.size(); // keep UI counter consistent
-            requestUpdateStatsNow();
+            // Keep all UI paths consistent with the actual linked set.
+            scanLinkedCount = linkedModifiers.size();
         }
-
         return added;
+    }
+
+    private void unlinkModifier(BlockPos modifierPos) {
+        if (linkedModifiers.remove(modifierPos)) {
+            scanLinkedCount = linkedModifiers.size();
+        }
     }
 
     private static String getTierIdFromState(Level level, BlockState state) {
@@ -466,11 +479,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
     }
 
     private static Identifier blockId(Level level, Block block) {
-        try {
-            return level.registryAccess().lookupOrThrow(Registries.BLOCK).getKey(block);
-        } catch (Exception ignored) {
-            return Identifier.parse("minecraft:air");
-        }
+        return level.registryAccess().lookupOrThrow(Registries.BLOCK).getKey(block);
     }
 
     public void drops() {
@@ -500,7 +509,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
 
         // Sync-friendly counters (small + cheap)
         output.putInt("enchanting_table.linked_count", linkedModifiers.size());
-        output.putBoolean("enchanting_table.relinking", relinkInProgress);
+        output.putBoolean("enchanting_table.relinking", mode == Mode.RELINK);
         output.putInt("enchanting_table.scan_total", scanTotalPositions);
         output.putInt("enchanting_table.scan_done", scanScannedPositions);
         output.putInt("enchanting_table.scan_linked", scanLinkedCount);
@@ -508,7 +517,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
 
         output.putInt("enchanting_table.progress", progress);
         output.putInt("enchanting_table.max_progress", maxProgress);
-        output.putBoolean("enchanting_table.running", running);
+        output.putBoolean("enchanting_table.running", mode == Mode.ENCHANT);
     }
 
     @Override
@@ -526,7 +535,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         }
 
         // These are used for client display (tooltip/screen). Server will reset relink state below.
-        relinkInProgress = input.getBooleanOr("enchanting_table.relinking", false);
+        boolean relink = input.getBooleanOr("enchanting_table.relinking", false);
         scanTotalPositions = input.getIntOr("enchanting_table.scan_total", 0);
         scanScannedPositions = input.getIntOr("enchanting_table.scan_done", 0);
         scanLinkedCount = input.getIntOr("enchanting_table.scan_linked", linkedModifiers.size());
@@ -534,11 +543,13 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
 
         progress = input.getIntOr("enchanting_table.progress", 0);
         maxProgress = input.getIntOr("enchanting_table.max_progress", BASE_PROGRESS_TICKS);
-        running = input.getBooleanOr("enchanting_table.running", false);
+        boolean running = input.getBooleanOr("enchanting_table.running", false);
+        mode = running ? Mode.ENCHANT : (relink ? Mode.RELINK : Mode.IDLE);
 
         // Never persist an in-progress scan on the server across loads
         if (this.level != null && !this.level.isClientSide()) {
-            relinkInProgress = false;
+            if (mode == Mode.RELINK) mode = Mode.IDLE;
+            relinkSession = null;
             relinkRequester = null;
             scanTotalPositions = 0;
             scanScannedPositions = 0;

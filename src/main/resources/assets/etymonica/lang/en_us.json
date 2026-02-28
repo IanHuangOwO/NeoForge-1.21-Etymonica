@@ -10,5 +10,30 @@
   "block.etymonica.orichalcum_block": "Orichalcum Block",
 
   "creativetab.etymonica.etymonica_items": "Etymonica Items",
-  "creativetab.etymonica.etymonica_blocks": "Etymonica Blocks"
+  "creativetab.etymonica.etymonica_blocks": "Etymonica Blocks",
+
+  "message.etymonica.enchanting.missing_input": "Put an item in the table first.",
+  "message.etymonica.enchanting.started": "Enchanting started.",
+  "message.etymonica.enchanting.cannot_start": "Cannot start enchanting right now.",
+
+  "message.etymonica.relink.started": "Relink started...",
+  "message.etymonica.relink.cancelled": "Relink cancelled.",
+  "message.etymonica.relink.completed": "Relink complete: %s blocks linked.",
+  "message.etymonica.relink.cannot_start": "Cannot relink right now.",
+
+  "message.etymonica.link_modifier.success": "Linked modifier.",
+  "message.etymonica.link_modifier.unlinked": "Unlinked modifier.",
+  "message.etymonica.link_modifier.no_capability": "This table cannot link modifiers.",
+  "message.etymonica.link_modifier.cap_reached": "Linked modifier list is full.",
+  "message.etymonica.link_modifier.no_radius": "This table has no link radius.",
+  "message.etymonica.link_modifier.too_far": "This block is too far away from the table.",
+  "message.etymonica.link_modifier.invalid_block": "This block is not a valid modifier.",
+  "message.etymonica.link_modifier.already_linked": "This modifier is already linked.",
+
+  "message.etymonica.tuning_fork.bound": "Tuning Fork bound to table at %s",
+  "message.etymonica.tuning_fork.table_missing": "Could not find table block entity.",
+  "message.etymonica.tuning_fork.not_bound": "Tuning Fork is not bound to a table.",
+  "message.etymonica.tuning_fork.wrong_dimension": "Bound table is in a different dimension.",
+  "message.etymonica.tuning_fork.bound_missing": "Bound table is missing. Clearing bind.",
+  "message.etymonica.tuning_fork.unbound": "Tuning Fork unbound."
 }

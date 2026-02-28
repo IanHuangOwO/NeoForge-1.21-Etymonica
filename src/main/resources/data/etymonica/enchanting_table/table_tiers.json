@@ -1,7 +1,7 @@
 {
   "table_tiers": {
     "tier0": {
-      "enchanting_power_cap": 15,
+      "enchanting_power_cap": 50,
       "link_radius": 4,
       "max_tier_enchantment": 0,
       "max_linked_modifiers": 64,
@@ -10,7 +10,7 @@
       "efficiency": 0.00
     },
     "tier1": {
-      "enchanting_power_cap": 30,
+      "enchanting_power_cap": 100,
       "link_radius": 16,
       "max_tier_enchantment": 0,
       "max_linked_modifiers": 128,

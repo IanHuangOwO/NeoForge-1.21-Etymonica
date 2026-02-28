@@ -2,6 +2,7 @@ package org.iansaididontcare.etymonica.block.custom;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.network.chat.Component;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -18,7 +19,9 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
 import org.iansaididontcare.etymonica.block.entity.EnchantingTableBlockEntity;
 import org.iansaididontcare.etymonica.block.entity.ModBlockEntities;
+import org.iansaididontcare.etymonica.enchanting.EnchantingTableMessages;
 import org.iansaididontcare.etymonica.item.ModItems;
+import org.iansaididontcare.etymonica.tag.ModItemTags;
 import org.jetbrains.annotations.Nullable;
 
 public class EnchantingTableBlock extends BaseEntityBlock {
@@ -62,9 +65,20 @@ public class EnchantingTableBlock extends BaseEntityBlock {
 
                 ItemStack held = player.getItemInHand(hand);
                 boolean holdingFork = held.is(ModItems.TUNING_FORK.get());
+                boolean holdingQuill = held.is(ModItemTags.QUILLS);
 
                 if (player.isCrouching() && holdingFork) {
-                    table.beginOrCancelRelinkScan(player);
+                    player.displayClientMessage(EnchantingTableMessages.action(table.beginOrCancelRelinkScan(player)), true);
+                    return InteractionResult.SUCCESS;
+                }
+
+                if (player.isCrouching() && holdingQuill) {
+                    if (table.itemHandler.getStackInSlot(EnchantingTableBlockEntity.SLOT_ITEM).isEmpty()) {
+                        player.displayClientMessage(Component.translatable("message.etymonica.enchanting.missing_input"), true);
+                        return InteractionResult.SUCCESS;
+                    }
+
+                    player.displayClientMessage(EnchantingTableMessages.action(table.requestStartEnchanting()), true);
                     return InteractionResult.SUCCESS;
                 }
 

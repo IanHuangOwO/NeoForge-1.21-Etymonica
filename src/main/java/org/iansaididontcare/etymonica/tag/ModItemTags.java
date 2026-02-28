@@ -1,11 +1,14 @@
 package org.iansaididontcare.etymonica.tag;
 
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.item.Item;
+import org.iansaididontcare.etymonica.Etymonica;
 
 public final class ModItemTags {
     private ModItemTags() {}
 
-    // Add item tag keys here as you introduce them, e.g.:
-    // public static final TagKey<Item> SOME_ITEM_TAG = ...
+    public static final TagKey<Item> QUILLS =
+            TagKey.create(Registries.ITEM, Identifier.parse(Etymonica.MOD_ID + ":quills"));
 }
