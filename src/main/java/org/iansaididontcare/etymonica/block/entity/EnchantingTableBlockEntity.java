@@ -1,6 +1,7 @@
 package org.iansaididontcare.etymonica.block.entity;
 
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
@@ -13,8 +14,10 @@ import net.minecraft.world.entity.player.Inventory;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.inventory.AbstractContainerMenu;
 import net.minecraft.world.inventory.ContainerData;
+import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -22,6 +25,7 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import org.iansaididontcare.etymonica.block.entity.enchanting.EnchantPowerCalculator;
 import org.iansaididontcare.etymonica.block.entity.enchanting.EnchantRelinkScanner;
 import org.iansaididontcare.etymonica.block.entity.enchanting.EnchantingTableDataSlots;
@@ -33,6 +37,9 @@ import org.iansaididontcare.etymonica.tag.ModBlockTags;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.HashSet;
+import java.util.Iterator;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
@@ -86,8 +93,16 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
     private float currentEfficiency = 0f;
 
     private int recomputeCooldownTicks = 0;
+    private boolean statsDirty = true;
+    private long lastDataRevision = -1L;
+    private String lastTierId = "";
 
     private final Set<BlockPos> linkedModifiers = new HashSet<>();
+    private final Map<BlockPos, LinkedContribution> contributionCache = new HashMap<>();
+    private float linkedSpeedTotal = 0f;
+    private float linkedStabilityTotal = 0f;
+    private float linkedEfficiencyTotal = 0f;
+    private int linkedPowerTotal = 0;
 
     // Scan state (server) + synced progress (via data)
     private int scanCap = 0;
@@ -97,6 +112,8 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
     private int scanScannedPositions = 0; // cube scanned so far
     private int scanLinkedCount = 0;      // linked so far
     private @Nullable UUID relinkRequester = null;
+
+    private record LinkedContribution(long fingerprint, float speed, float stability, float efficiency, int power) {}
 
     private final ContainerData data = new ContainerData() {
         @Override
@@ -212,6 +229,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
 
         linkedModifiers.clear();
         scanLinkedCount = 0;
+        resetContributionCache();
 
         if (scanRadius <= 0 || scanCap <= 0) {
             mode = Mode.IDLE;
@@ -333,6 +351,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
 
     public void requestUpdateStatsNow() {
         if (level == null || level.isClientSide()) return;
+        markStatsDirty();
         recomputeCooldownTicks = 0;
         recomputeStatsNow(level, getBlockState());
         level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
@@ -371,39 +390,141 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
     private void recomputeStatsNow(Level level, BlockState state) {
         String tierId = getTierIdFromState(level, state);
         EnchantingTableStats base = EnchantingTableData.getTier(tierId);
+        boolean tierChanged = !tierId.equals(lastTierId);
+        long revision = EnchantingTableData.getRevision();
+        boolean dataChanged = revision != lastDataRevision;
+        boolean linkedChanged = reconcileLinkedContributions(level);
 
-        EnchantingTableModifierStats modifiers = sumLinkedModifiers(level);
+        if (!(statsDirty || tierChanged || dataChanged || linkedChanged)) return;
 
-        currentSpeed = EnchantingTableStats.clamp01(base.speed() + modifiers.speed());
-        currentStability = EnchantingTableStats.clamp01(base.stability() + modifiers.stability());
-        currentEfficiency = EnchantingTableStats.clamp01(base.efficiency() + modifiers.efficiency());
+        lastTierId = tierId;
+        lastDataRevision = revision;
 
-        int bookshelfPower = EnchantPowerCalculator.computeBookshelfPower(level, linkedModifiers);
-        currentPower = Math.max(0, Math.min(bookshelfPower, base.enchantingPowerCap()));
+        currentSpeed = EnchantingTableStats.clamp01(base.speed() + linkedSpeedTotal);
+        currentStability = EnchantingTableStats.clamp01(base.stability() + linkedStabilityTotal);
+        currentEfficiency = EnchantingTableStats.clamp01(base.efficiency() + linkedEfficiencyTotal);
+
+        currentPower = Math.max(0, Math.min(linkedPowerTotal, base.enchantingPowerCap()));
         scanCap = Math.max(0, base.maxLinkedModifiers());
         maxProgress = Math.max(1, Math.round(BASE_PROGRESS_TICKS * (1.0f - currentSpeed)));
+        statsDirty = false;
     }
 
-    private EnchantingTableModifierStats sumLinkedModifiers(Level level) {
-        if (linkedModifiers.isEmpty()) return EnchantingTableModifierStats.ZERO;
+    private boolean reconcileLinkedContributions(Level level) {
+        boolean changed = false;
 
-        float speed = 0f;
-        float stability = 0f;
-        float efficiency = 0f;
+        Iterator<BlockPos> linkedIt = linkedModifiers.iterator();
+        while (linkedIt.hasNext()) {
+            BlockPos pos = linkedIt.next();
+            BlockState state = level.getBlockState(pos);
+            if (!state.is(ModBlockTags.ENCHANTING_TABLE_MODIFIERS)) {
+                linkedIt.remove();
+                removeContribution(pos);
+                changed = true;
+                continue;
+            }
 
-        linkedModifiers.removeIf(p -> !level.getBlockState(p).is(ModBlockTags.ENCHANTING_TABLE_MODIFIERS));
-
-        for (BlockPos pos : linkedModifiers) {
-            BlockState st = level.getBlockState(pos);
-            Identifier id = blockId(level, st.getBlock());
-            EnchantingTableModifierStats add = EnchantingTableData.getModifier(id);
-
-            speed += add.speed();
-            stability += add.stability();
-            efficiency += add.efficiency();
+            long fingerprint = computeFingerprint(level, pos, state);
+            LinkedContribution previous = contributionCache.get(pos);
+            if (previous == null || previous.fingerprint() != fingerprint) {
+                if (previous != null) subtractContribution(previous);
+                LinkedContribution next = computeContribution(level, pos, state, fingerprint);
+                contributionCache.put(pos, next);
+                addContribution(next);
+                changed = true;
+            }
         }
 
-        return new EnchantingTableModifierStats(speed, stability, efficiency);
+        Iterator<Map.Entry<BlockPos, LinkedContribution>> cacheIt = contributionCache.entrySet().iterator();
+        while (cacheIt.hasNext()) {
+            Map.Entry<BlockPos, LinkedContribution> entry = cacheIt.next();
+            if (!linkedModifiers.contains(entry.getKey())) {
+                subtractContribution(entry.getValue());
+                cacheIt.remove();
+                changed = true;
+            }
+        }
+
+        if (scanLinkedCount != linkedModifiers.size()) {
+            scanLinkedCount = linkedModifiers.size();
+            changed = true;
+        }
+
+        if (changed) markStatsDirty();
+        return changed;
+    }
+
+    private long computeFingerprint(Level level, BlockPos pos, BlockState state) {
+        long hash = 1469598103934665603L;
+        hash = mix(hash, Block.getId(state));
+
+        BlockEntity be = level.getBlockEntity(pos);
+        if (be == null) return hash;
+        hash = mix(hash, be.getClass().getName().hashCode());
+
+        if (!(be instanceof net.minecraft.world.Container container)) return hash;
+        int size = container.getContainerSize();
+        hash = mix(hash, size);
+        for (int i = 0; i < size; i++) {
+            ItemStack stack = container.getItem(i);
+            if (stack.isEmpty()) {
+                hash = mix(hash, 1);
+                continue;
+            }
+            hash = mix(hash, Item.getId(stack.getItem()));
+            hash = mix(hash, stack.getCount());
+
+            ItemEnchantments stored = stack.getOrDefault(DataComponents.STORED_ENCHANTMENTS, ItemEnchantments.EMPTY);
+            for (Object2IntMap.Entry<net.minecraft.core.Holder<net.minecraft.world.item.enchantment.Enchantment>> e : stored.entrySet()) {
+                hash = mix(hash, e.getKey().hashCode());
+                hash = mix(hash, e.getIntValue());
+            }
+        }
+        return hash;
+    }
+
+    private static long mix(long current, int value) {
+        return (current ^ (long) value) * 1099511628211L;
+    }
+
+    private LinkedContribution computeContribution(Level level, BlockPos pos, BlockState state, long fingerprint) {
+        Identifier id = blockId(level, state.getBlock());
+        EnchantingTableModifierStats modifier = EnchantingTableData.getModifier(id);
+        int power = EnchantPowerCalculator.computeBookshelfPowerForBlock(level, pos);
+        return new LinkedContribution(fingerprint, modifier.speed(), modifier.stability(), modifier.efficiency(), power);
+    }
+
+    private void addContribution(LinkedContribution c) {
+        linkedSpeedTotal += c.speed();
+        linkedStabilityTotal += c.stability();
+        linkedEfficiencyTotal += c.efficiency();
+        linkedPowerTotal += c.power();
+    }
+
+    private void subtractContribution(LinkedContribution c) {
+        linkedSpeedTotal -= c.speed();
+        linkedStabilityTotal -= c.stability();
+        linkedEfficiencyTotal -= c.efficiency();
+        linkedPowerTotal -= c.power();
+        if (linkedPowerTotal < 0) linkedPowerTotal = 0;
+    }
+
+    private void removeContribution(BlockPos pos) {
+        LinkedContribution old = contributionCache.remove(pos);
+        if (old != null) subtractContribution(old);
+    }
+
+    private void resetContributionCache() {
+        contributionCache.clear();
+        linkedSpeedTotal = 0f;
+        linkedStabilityTotal = 0f;
+        linkedEfficiencyTotal = 0f;
+        linkedPowerTotal = 0;
+        markStatsDirty();
+    }
+
+    private void markStatsDirty() {
+        statsDirty = true;
     }
 
     private EnchantingTableStats getCurrentTierStats(ServerLevel level) {
@@ -457,6 +578,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         if (added) {
             // Keep all UI paths consistent with the actual linked set.
             scanLinkedCount = linkedModifiers.size();
+            markStatsDirty();
         }
         return added;
     }
@@ -464,6 +586,8 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
     private void unlinkModifier(BlockPos modifierPos) {
         if (linkedModifiers.remove(modifierPos)) {
             scanLinkedCount = linkedModifiers.size();
+            removeContribution(modifierPos);
+            markStatsDirty();
         }
     }
 
@@ -533,6 +657,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         for (long l : linked) {
             linkedModifiers.add(BlockPos.of(l));
         }
+        resetContributionCache();
 
         // These are used for client display (tooltip/screen). Server will reset relink state below.
         boolean relink = input.getBooleanOr("enchanting_table.relinking", false);
@@ -554,6 +679,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
             scanTotalPositions = 0;
             scanScannedPositions = 0;
             scanLinkedCount = linkedModifiers.size();
+            resetContributionCache();
         }
     }
 }

@@ -23,24 +23,29 @@ public final class EnchantPowerCalculator {
 
     public static int computeBookshelfPower(Level level, Set<BlockPos> linkedModifiers) {
         if (linkedModifiers.isEmpty()) return 0;
+        int total = 0;
+        for (BlockPos pos : linkedModifiers) {
+            total += computeBookshelfPowerForBlock(level, pos);
+        }
+        return Math.max(0, total);
+    }
+
+    public static int computeBookshelfPowerForBlock(Level level, BlockPos pos) {
+        if (!(level.getBlockEntity(pos) instanceof Container container)) return 0;
 
         Map<Holder<Enchantment>, Integer> levelsByType = new HashMap<>();
 
-        for (BlockPos pos : linkedModifiers) {
-            if (!(level.getBlockEntity(pos) instanceof Container container)) continue;
+        int size = container.getContainerSize();
+        for (int i = 0; i < size; i++) {
+            ItemStack stack = container.getItem(i);
+            if (stack.isEmpty() || !stack.is(Items.ENCHANTED_BOOK)) continue;
 
-            int size = container.getContainerSize();
-            for (int i = 0; i < size; i++) {
-                ItemStack stack = container.getItem(i);
-                if (stack.isEmpty() || !stack.is(Items.ENCHANTED_BOOK)) continue;
-
-                ItemEnchantments enchantments = stack.getOrDefault(DataComponents.STORED_ENCHANTMENTS, ItemEnchantments.EMPTY);
-                for (Object2IntMap.Entry<Holder<Enchantment>> entry : enchantments.entrySet()) {
-                    if (entry == null) continue;
-                    int levelValue = Math.max(0, entry.getIntValue());
-                    if (levelValue <= 0) continue;
-                    levelsByType.merge(entry.getKey(), levelValue, Integer::sum);
-                }
+            ItemEnchantments enchantments = stack.getOrDefault(DataComponents.STORED_ENCHANTMENTS, ItemEnchantments.EMPTY);
+            for (Object2IntMap.Entry<Holder<Enchantment>> entry : enchantments.entrySet()) {
+                if (entry == null) continue;
+                int levelValue = Math.max(0, entry.getIntValue());
+                if (levelValue <= 0) continue;
+                levelsByType.merge(entry.getKey(), levelValue, Integer::sum);
             }
         }
 
@@ -59,9 +64,9 @@ public final class EnchantPowerCalculator {
                 enchantmentId = Identifier.parse("minecraft:air");
             }
             double weight = EnchantingTableData.getEnchantmentWeight(enchantmentId);
-
             power += (int) Math.round(levelSum * Math.max(0.0d, weight));
         }
+
         return Math.max(0, power);
     }
 }
