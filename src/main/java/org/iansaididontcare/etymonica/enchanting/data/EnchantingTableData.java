@@ -12,8 +12,10 @@ public final class EnchantingTableData {
 
     private static volatile Map<String, EnchantingTableStats> TIERS = Map.of();
     private static volatile Map<Identifier, EnchantingTableModifierStats> MODIFIERS = Map.of();
-    private static volatile Map<Identifier, Double> ENCHANTMENT_WEIGHTS = Map.of();
-    private static volatile double DEFAULT_ENCHANTMENT_WEIGHT = 1.0d;
+    private static volatile Map<Identifier, Double> ACCUMULATION_WEIGHTS = Map.of();
+    private static volatile double DEFAULT_ACCUMULATION_WEIGHT = 1.0d;
+    private static volatile Map<Identifier, Double> DRAIN_WEIGHTS = Map.of();
+    private static volatile double DEFAULT_DRAIN_WEIGHT = 1.0d;
     private static final AtomicLong REVISION = new AtomicLong(0L);
 
     public static EnchantingTableStats getTier(String tierId) {
@@ -24,8 +26,16 @@ public final class EnchantingTableData {
         return MODIFIERS.getOrDefault(blockId, EnchantingTableModifierStats.ZERO);
     }
 
+    public static double getAccumulationWeight(Identifier enchantmentId) {
+        return ACCUMULATION_WEIGHTS.getOrDefault(enchantmentId, DEFAULT_ACCUMULATION_WEIGHT);
+    }
+
+    public static double getDrainWeight(Identifier enchantmentId) {
+        return DRAIN_WEIGHTS.getOrDefault(enchantmentId, DEFAULT_DRAIN_WEIGHT);
+    }
+
     public static double getEnchantmentWeight(Identifier enchantmentId) {
-        return ENCHANTMENT_WEIGHTS.getOrDefault(enchantmentId, DEFAULT_ENCHANTMENT_WEIGHT);
+        return getAccumulationWeight(enchantmentId);
     }
 
     public static long getRevision() {
@@ -42,9 +52,18 @@ public final class EnchantingTableData {
         REVISION.incrementAndGet();
     }
 
-    public static void setEnchantmentWeights(Map<Identifier, Double> weights, double defaultWeight) {
-        ENCHANTMENT_WEIGHTS = Map.copyOf(weights);
-        DEFAULT_ENCHANTMENT_WEIGHT = Math.max(0.0d, defaultWeight);
+    public static void setEnchantmentWeights(
+            Map<Identifier, Double> accumulationWeights, double defaultAccumulationWeight,
+            Map<Identifier, Double> drainWeights, double defaultDrainWeight
+    ) {
+        ACCUMULATION_WEIGHTS = Map.copyOf(accumulationWeights);
+        DEFAULT_ACCUMULATION_WEIGHT = Math.max(0.0d, defaultAccumulationWeight);
+        DRAIN_WEIGHTS = Map.copyOf(drainWeights);
+        DEFAULT_DRAIN_WEIGHT = Math.max(0.0d, defaultDrainWeight);
         REVISION.incrementAndGet();
+    }
+
+    public static void setEnchantmentWeights(Map<Identifier, Double> weights, double defaultWeight) {
+        setEnchantmentWeights(weights, defaultWeight, weights, defaultWeight);
     }
 }

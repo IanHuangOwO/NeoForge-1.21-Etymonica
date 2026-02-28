@@ -2,7 +2,10 @@ package org.iansaididontcare.etymonica.block.entity.enchanting;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.Registries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.Container;
 import net.minecraft.world.item.ItemStack;
@@ -13,6 +16,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
+import org.iansaididontcare.etymonica.enchanting.data.EnchantingTableData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -23,13 +27,17 @@ public final class EnchantBookDrainer {
 
     private record BookshelfSlot(BlockPos pos, Container container, int slot) {}
 
-    public static int computeDrainBudgetFromItem(ItemStack stack) {
+    public static int computeDrainBudgetFromItem(Level level, ItemStack stack) {
         ItemEnchantments enchantments = stack.getOrDefault(DataComponents.ENCHANTMENTS, ItemEnchantments.EMPTY);
-        int sum = 0;
-        for (Object2IntMap.Entry<net.minecraft.core.Holder<Enchantment>> entry : enchantments.entrySet()) {
-            sum += Math.max(0, entry.getIntValue());
+        double sum = 0.0d;
+        for (Object2IntMap.Entry<Holder<Enchantment>> entry : enchantments.entrySet()) {
+            int levelValue = Math.max(0, entry.getIntValue());
+            if (levelValue <= 0) continue;
+            Identifier enchantmentId = getEnchantmentId(level, entry.getKey());
+            double weight = EnchantingTableData.getDrainWeight(enchantmentId);
+            sum += levelValue * Math.max(0.0d, weight);
         }
-        return Math.max(0, sum);
+        return Math.max(0, (int) Math.round(sum));
     }
 
     public static int drainFromLinkedBookshelves(Level level, Set<BlockPos> linkedModifiers, TagKey<Block> bookshelfTag, int budget) {
@@ -127,6 +135,16 @@ public final class EnchantBookDrainer {
                 BlockState st = level.getBlockState(pos);
                 level.sendBlockUpdated(pos, st, st, 3);
             }
+        }
+    }
+
+    private static Identifier getEnchantmentId(Level level, Holder<Enchantment> enchantment) {
+        try {
+            return level.registryAccess()
+                    .lookupOrThrow(Registries.ENCHANTMENT)
+                    .getKey(enchantment.value());
+        } catch (Exception ignored) {
+            return Identifier.parse("minecraft:air");
         }
     }
 }

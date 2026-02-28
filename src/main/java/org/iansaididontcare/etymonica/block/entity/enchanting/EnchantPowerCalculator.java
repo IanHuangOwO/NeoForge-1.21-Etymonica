@@ -63,7 +63,7 @@ public final class EnchantPowerCalculator {
             } catch (Exception ignored) {
                 enchantmentId = Identifier.parse("minecraft:air");
             }
-            double weight = EnchantingTableData.getEnchantmentWeight(enchantmentId);
+            double weight = EnchantingTableData.getAccumulationWeight(enchantmentId);
             power += (int) Math.round(levelSum * Math.max(0.0d, weight));
         }
 

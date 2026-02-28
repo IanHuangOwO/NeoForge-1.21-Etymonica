@@ -395,7 +395,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
 
         itemHandler.setStackInSlot(SLOT_ITEM, enchanted);
 
-        int drainBudget = EnchantBookDrainer.computeDrainBudgetFromItem(enchanted);
+        int drainBudget = EnchantBookDrainer.computeDrainBudgetFromItem(level, enchanted);
         if (drainBudget > 0) {
             int drained = EnchantBookDrainer.drainFromLinkedBookshelves(
                     level,
