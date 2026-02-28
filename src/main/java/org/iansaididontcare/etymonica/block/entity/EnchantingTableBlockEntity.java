@@ -46,6 +46,7 @@ import java.util.Set;
 import java.util.UUID;
 
 public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvider {
+    // Core constants and machine modes.
     private static final int BASE_PROGRESS_TICKS = 640;
     private enum Mode {
         IDLE,
@@ -73,6 +74,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
 
     private static final int SCAN_POSITIONS_PER_TICK = 1500;
 
+    // Inventory and runtime state shared by ticking, menu, and renderer.
     public final ItemStackHandler itemHandler = new ItemStackHandler(2) {
         @Override
         protected void onContentsChanged(int slot) {
@@ -116,6 +118,8 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
     private @Nullable UUID relinkRequester = null;
 
     private record LinkedContribution(long fingerprint, float speed, float stability, float efficiency, int power) {}
+
+    // Data slot bridge used by menu/screen to read synced machine state.
     private final ContainerData data = new ContainerData() {
         @Override
         public int get(int index) {
@@ -194,6 +198,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         return data;
     }
 
+    // Client-side visual rotation for the rendered top item.
     public float getRenderingRotation() {
         renderRotation += 0.5f;
         if (renderRotation >= 360f) {
@@ -206,6 +211,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         super(ModBlockEntities.ENCHANTING_TABLE_BE.get(), pos, state);
     }
 
+    // Menu provider entry points.
     @Override
     public Component getDisplayName() {
         return Component.translatable("block.etymonica.enchanting_table");
@@ -217,7 +223,87 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         return new EnchantingTableMenu(containerId, inv, this, this.data);
     }
 
-    /** Shift-right-click: start scan; shift-right-click again: cancel scan. */
+    // Main server tick: relink progression, periodic stat recompute, and enchant progress.
+    public void tickServer(Level level, BlockPos pos, BlockState state) {
+        if (mode == Mode.RELINK) {
+            advanceRelinkScan((ServerLevel) level);
+        }
+
+        if (recomputeCooldownTicks-- <= 0) {
+            recomputeCooldownTicks = 20;
+            recomputeStatsNow(level, state);
+        }
+
+        if (mode != Mode.ENCHANT) return;
+
+        if (!hasValidInput()) {
+            stopEnchanting();
+            return;
+        }
+
+        progress++;
+        setChanged(level, pos, state);
+
+        if (progress >= maxProgress) {
+            doEnchant(level);
+            stopEnchanting();
+        }
+    }
+
+    // Enchant lifecycle: start/stop flow, input validation, and final enchant application.
+    public TableActionResult requestStartEnchanting() {
+        if (mode != Mode.IDLE) return TableActionResult.ENCHANT_BLOCKED;
+        if (!hasValidInput()) return TableActionResult.ENCHANT_BLOCKED;
+        mode = Mode.ENCHANT;
+        progress = 0;
+        setChanged();
+        return TableActionResult.ENCHANT_STARTED;
+    }
+
+    private void stopEnchanting() {
+        mode = Mode.IDLE;
+        progress = 0;
+        setChanged();
+    }
+
+    private void doEnchant(Level level) {
+        ItemStack stack = itemHandler.getStackInSlot(SLOT_ITEM);
+        if (stack.isEmpty()) return;
+
+        int power = currentPower;
+        ItemStack enchanted = EnchantmentHelper.enchantItem(
+                level.random,
+                stack.copyWithCount(1),
+                Math.max(0, power),
+                level.registryAccess(),
+                Optional.empty()
+        );
+
+        itemHandler.setStackInSlot(SLOT_ITEM, enchanted);
+
+        int drainBudget = EnchantBookDrainer.computeDrainBudgetFromItem(level, enchanted);
+        if (drainBudget > 0) {
+            int drained = EnchantBookDrainer.drainFromLinkedBookshelves(
+                    level,
+                    linkedModifiers,
+                    ModBlockTags.ENCHANTING_TABLE_BOOKSHELVES,
+                    drainBudget
+            );
+            if (drained > 0) {
+                markStatsDirty();
+                recomputeCooldownTicks = 0;
+            }
+        }
+    }
+
+    private boolean hasValidInput() {
+        if (level == null || level.isClientSide()) return false;
+
+        ItemStack stack = itemHandler.getStackInSlot(SLOT_ITEM);
+        return !stack.isEmpty() && stack.isEnchantable();
+    }
+
+    // Relink lifecycle: scan start/cancel and incremental linking across ticks.
     public TableActionResult beginOrCancelRelinkScan(@Nullable Player requester) {
         if (level == null || level.isClientSide()) return TableActionResult.RELINK_BLOCKED;
 
@@ -274,32 +360,6 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
     }
 
-    public void tickServer(Level level, BlockPos pos, BlockState state) {
-        if (mode == Mode.RELINK) {
-            advanceRelinkScan((ServerLevel) level);
-        }
-
-        if (recomputeCooldownTicks-- <= 0) {
-            recomputeCooldownTicks = 20;
-            recomputeStatsNow(level, state);
-        }
-
-        if (mode != Mode.ENCHANT) return;
-
-        if (!hasValidInput()) {
-            stopEnchanting();
-            return;
-        }
-
-        progress++;
-        setChanged(level, pos, state);
-
-        if (progress >= maxProgress) {
-            doEnchant(level);
-            stopEnchanting();
-        }
-    }
-
     private void advanceRelinkScan(ServerLevel level) {
         if (relinkSession == null || !relinkSession.isActive()) {
             mode = Mode.IDLE;
@@ -349,15 +409,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         }
     }
 
-    public TableActionResult requestStartEnchanting() {
-        if (mode != Mode.IDLE) return TableActionResult.ENCHANT_BLOCKED;
-        if (!hasValidInput()) return TableActionResult.ENCHANT_BLOCKED;
-        mode = Mode.ENCHANT;
-        progress = 0;
-        setChanged();
-        return TableActionResult.ENCHANT_STARTED;
-    }
-
+    // Stat refresh API and recompute pipeline.
     public void requestUpdateStatsNow() {
         if (level == null || level.isClientSide()) return;
         markStatsDirty();
@@ -365,49 +417,6 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         recomputeStatsNow(level, getBlockState());
         level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
         setChanged();
-    }
-
-    private void stopEnchanting() {
-        mode = Mode.IDLE;
-        progress = 0;
-        setChanged();
-    }
-
-    private boolean hasValidInput() {
-        if (level == null || level.isClientSide()) return false;
-
-        ItemStack stack = itemHandler.getStackInSlot(SLOT_ITEM);
-        return !stack.isEmpty() && stack.isEnchantable();
-    }
-
-    private void doEnchant(Level level) {
-        ItemStack stack = itemHandler.getStackInSlot(SLOT_ITEM);
-        if (stack.isEmpty()) return;
-
-        int power = currentPower;
-        ItemStack enchanted = EnchantmentHelper.enchantItem(
-                level.random,
-                stack.copyWithCount(1),
-                Math.max(0, power),
-                level.registryAccess(),
-                Optional.empty()
-        );
-
-        itemHandler.setStackInSlot(SLOT_ITEM, enchanted);
-
-        int drainBudget = EnchantBookDrainer.computeDrainBudgetFromItem(level, enchanted);
-        if (drainBudget > 0) {
-            int drained = EnchantBookDrainer.drainFromLinkedBookshelves(
-                    level,
-                    linkedModifiers,
-                    ModBlockTags.ENCHANTING_TABLE_BOOKSHELVES,
-                    drainBudget
-            );
-            if (drained > 0) {
-                markStatsDirty();
-                recomputeCooldownTicks = 0;
-            }
-        }
     }
 
     private void recomputeStatsNow(Level level, BlockState state) {
@@ -433,6 +442,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         statsDirty = false;
     }
 
+    // Incremental cache reconciliation for linked modifier contributions.
     private boolean reconcileLinkedContributions(Level level) {
         boolean changed = false;
 
@@ -550,12 +560,12 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         statsDirty = true;
     }
 
+    // Manual tuning-fork link API and local link-set helpers.
     private EnchantingTableStats getCurrentTierStats(ServerLevel level) {
         String tierId = getTierIdFromState(level, getBlockState());
         return EnchantingTableData.getTier(tierId);
     }
 
-    /** Manual add from tuning fork. */
     public TableActionResult tryLinkModifier(ServerLevel level, BlockPos modifierPos) {
         EnchantingTableStats stats = getCurrentTierStats(level);
 
@@ -613,6 +623,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         return removed;
     }
 
+    // Small registry and tier resolution helpers.
     private static String getTierIdFromState(Level level, BlockState state) {
         Identifier id = blockId(level, state.getBlock());
         String path = id.getPath();
@@ -628,6 +639,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         return level.registryAccess().lookupOrThrow(Registries.BLOCK).getKey(block);
     }
 
+    // Block-entity lifecycle hooks: drop inventory and persist runtime data.
     public void drops() {
         SimpleContainer inv = new SimpleContainer(itemHandler.getSlots());
         for (int i = 0; i < itemHandler.getSlots(); i++) {

@@ -46,17 +46,19 @@ public final class EnchantBookDrainer {
         List<BookshelfSlot> candidates = collectDrainingCandidates(level, linkedModifiers, bookshelfTag);
         if (candidates.isEmpty()) return 0;
 
+        double remainingBudget = budget;
         int drained = 0;
-        while (budget > 0 && !candidates.isEmpty()) {
+        while (remainingBudget > 0.0d && !candidates.isEmpty()) {
             int index = level.random.nextInt(candidates.size());
             BookshelfSlot selected = candidates.get(index);
-            if (!drainOneLevelFromBook(level, selected)) {
+            double consumed = drainOneLevelFromBook(level, selected);
+            if (consumed <= 0.0d) {
                 candidates.remove(index);
                 continue;
             }
 
             drained++;
-            budget--;
+            remainingBudget -= consumed;
 
             ItemStack now = selected.container().getItem(selected.slot());
             if (now.isEmpty() || !now.is(Items.ENCHANTED_BOOK)) {
@@ -87,9 +89,9 @@ public final class EnchantBookDrainer {
         return out;
     }
 
-    private static boolean drainOneLevelFromBook(Level level, BookshelfSlot target) {
+    private static double drainOneLevelFromBook(Level level, BookshelfSlot target) {
         ItemStack stack = target.container().getItem(target.slot());
-        if (stack.isEmpty() || !stack.is(Items.ENCHANTED_BOOK)) return false;
+        if (stack.isEmpty() || !stack.is(Items.ENCHANTED_BOOK)) return 0.0d;
 
         ItemEnchantments stored = stack.getOrDefault(DataComponents.STORED_ENCHANTMENTS, ItemEnchantments.EMPTY);
         List<Object2IntMap.Entry<net.minecraft.core.Holder<Enchantment>>> entries = new ArrayList<>();
@@ -98,11 +100,12 @@ public final class EnchantBookDrainer {
                 entries.add(entry);
             }
         }
-        if (entries.isEmpty()) return false;
+        if (entries.isEmpty()) return 0.0d;
 
         Object2IntMap.Entry<net.minecraft.core.Holder<Enchantment>> picked =
                 entries.get(level.random.nextInt(entries.size()));
         var pickedEnchantment = picked.getKey();
+        double consumed = Math.max(0.0d, EnchantingTableData.getAccumulationWeight(getEnchantmentId(level, pickedEnchantment)));
 
         ItemEnchantments.Mutable mutable = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
         for (Object2IntMap.Entry<net.minecraft.core.Holder<Enchantment>> entry : entries) {
@@ -124,7 +127,7 @@ public final class EnchantBookDrainer {
         }
 
         notifyBookshelfChanged(level, target.pos());
-        return true;
+        return consumed;
     }
 
     private static void notifyBookshelfChanged(Level level, BlockPos pos) {
