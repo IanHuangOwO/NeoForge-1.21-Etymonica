@@ -12,6 +12,7 @@ import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
 import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import org.iansaididontcare.etymonica.block.entity.ModBlockEntities;
+import org.iansaididontcare.etymonica.block.entity.renderer.EnchantingTableBlockEntityRenderer;
 import org.iansaididontcare.etymonica.block.entity.renderer.PedestalBlockEntityRenderer;
 import org.iansaididontcare.etymonica.screen.ModMenuTypes;
 import org.iansaididontcare.etymonica.screen.custom.EnchantingTableScreen;
@@ -39,6 +40,7 @@ public class EtymonicaClient {
     @SubscribeEvent
     public static void registerBER(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModBlockEntities.PEDESTAL_BE.get(), PedestalBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.ENCHANTING_TABLE_BE.get(), EnchantingTableBlockEntityRenderer::new);
     }
 
     @SubscribeEvent

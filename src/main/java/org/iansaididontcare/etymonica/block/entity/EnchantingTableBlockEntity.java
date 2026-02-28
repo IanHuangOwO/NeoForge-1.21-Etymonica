@@ -26,6 +26,7 @@ import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
+import org.iansaididontcare.etymonica.block.entity.enchanting.EnchantBookDrainer;
 import org.iansaididontcare.etymonica.block.entity.enchanting.EnchantPowerCalculator;
 import org.iansaididontcare.etymonica.block.entity.enchanting.EnchantRelinkScanner;
 import org.iansaididontcare.etymonica.block.entity.enchanting.EnchantingTableDataSlots;
@@ -85,6 +86,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
     private Mode mode = Mode.IDLE;
     private int progress = 0;
     private int maxProgress = BASE_PROGRESS_TICKS;
+    private float renderRotation = 0f;
 
     // Cached effective stats
     private int currentPower = 0;
@@ -114,7 +116,6 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
     private @Nullable UUID relinkRequester = null;
 
     private record LinkedContribution(long fingerprint, float speed, float stability, float efficiency, int power) {}
-
     private final ContainerData data = new ContainerData() {
         @Override
         public int get(int index) {
@@ -191,6 +192,14 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
 
     public ContainerData getData() {
         return data;
+    }
+
+    public float getRenderingRotation() {
+        renderRotation += 0.5f;
+        if (renderRotation >= 360f) {
+            renderRotation = 0f;
+        }
+        return renderRotation;
     }
 
     public EnchantingTableBlockEntity(BlockPos pos, BlockState state) {
@@ -307,7 +316,7 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
             BlockState st = level.getBlockState(target);
             if (!st.is(ModBlockTags.ENCHANTING_TABLE_MODIFIERS)) continue;
 
-            tryAddLinkedModifier(target);
+            tryLinkedModifier(target);
         }
 
         scanTotalPositions = relinkSession.getTotalPositions();
@@ -385,6 +394,20 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         );
 
         itemHandler.setStackInSlot(SLOT_ITEM, enchanted);
+
+        int drainBudget = EnchantBookDrainer.computeDrainBudgetFromItem(enchanted);
+        if (drainBudget > 0) {
+            int drained = EnchantBookDrainer.drainFromLinkedBookshelves(
+                    level,
+                    linkedModifiers,
+                    ModBlockTags.ENCHANTING_TABLE_BOOKSHELVES,
+                    drainBudget
+            );
+            if (drained > 0) {
+                markStatsDirty();
+                recomputeCooldownTicks = 0;
+            }
+        }
     }
 
     private void recomputeStatsNow(Level level, BlockState state) {
@@ -559,36 +582,35 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
             return TableActionResult.LINK_BLOCKED_INVALID_BLOCK;
         }
 
-        if (linkedModifiers.contains(modifierPos)) {
-            unlinkModifier(modifierPos);
-            requestUpdateStatsNow();
-            return TableActionResult.MODIFIER_UNLINKED;
-        }
-
-        if (tryAddLinkedModifier(modifierPos)) {
+        if (tryLinkedModifier(modifierPos)) {
             requestUpdateStatsNow();
             return TableActionResult.MODIFIER_LINKED;
+        }
+
+        if (tryUnlinkModifier(modifierPos)) {
+            requestUpdateStatsNow();
+            return TableActionResult.MODIFIER_UNLINKED;
         }
 
         return TableActionResult.LINK_BLOCKED_ALREADY_LINKED;
     }
 
-    private boolean tryAddLinkedModifier(BlockPos modifierPos) {
+    private boolean tryLinkedModifier(BlockPos modifierPos) {
         boolean added = linkedModifiers.add(modifierPos.immutable());
         if (added) {
-            // Keep all UI paths consistent with the actual linked set.
             scanLinkedCount = linkedModifiers.size();
             markStatsDirty();
         }
         return added;
     }
 
-    private void unlinkModifier(BlockPos modifierPos) {
-        if (linkedModifiers.remove(modifierPos)) {
+    private boolean tryUnlinkModifier(BlockPos modifierPos) {
+        boolean removed = linkedModifiers.remove(modifierPos);
+        if (removed) {
             scanLinkedCount = linkedModifiers.size();
-            removeContribution(modifierPos);
             markStatsDirty();
         }
+        return removed;
     }
 
     private static String getTierIdFromState(Level level, BlockState state) {

@@ -14,4 +14,7 @@ public final class ModBlockTags {
 
     public static final TagKey<Block> ENCHANTING_TABLE_MODIFIERS =
             TagKey.create(Registries.BLOCK, Identifier.parse(Etymonica.MOD_ID + ":enchanting_table_modifiers"));
+
+    public static final TagKey<Block> ENCHANTING_TABLE_BOOKSHELVES =
+            TagKey.create(Registries.BLOCK, Identifier.parse(Etymonica.MOD_ID + ":enchanting_table_bookshelves"));
 }
