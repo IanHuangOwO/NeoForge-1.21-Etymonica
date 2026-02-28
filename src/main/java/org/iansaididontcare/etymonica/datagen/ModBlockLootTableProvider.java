@@ -5,6 +5,7 @@ import net.minecraft.core.HolderLookup;
 import net.minecraft.data.loot.BlockLootSubProvider;
 import net.minecraft.world.flag.FeatureFlags;
 import net.minecraft.world.level.block.Block;
+import net.neoforged.fml.common.Mod;
 import org.iansaididontcare.etymonica.block.ModBlocks;
 import org.iansaididontcare.etymonica.item.ModItems;
 
@@ -19,7 +20,8 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
     protected void generate() {
         dropSelf(ModBlocks.ORICHALCUM_BLOCK.get());
         dropSelf(ModBlocks.PEDESTAL.get());
-        dropSelf(ModBlocks.GROWTH_CHAMBER.get());
+        dropSelf(ModBlocks.ENCHANTING_TABLE_TIER0.get());
+        dropSelf(ModBlocks.ENCHANTING_TABLE_TIER1.get());
     }
 
     @Override

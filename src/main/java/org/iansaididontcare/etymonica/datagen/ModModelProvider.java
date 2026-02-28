@@ -26,10 +26,12 @@ public class ModModelProvider extends ModelProvider {
         itemModels.generateFlatItem(ModItems.ETYMONICON.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ModItems.RAW_ORICHALCUM.get(), ModelTemplates.FLAT_ITEM);
         itemModels.generateFlatItem(ModItems.ORICHALCUM_INGOT.get(), ModelTemplates.FLAT_ITEM);
+        itemModels.generateFlatItem(ModItems.TUNING_FORK.get(), ModelTemplates.FLAT_ITEM);
 
         /* BLOCKS */
         blockModels.createTrivialCube(ModBlocks.ORICHALCUM_BLOCK.get());
-        blockModels.createTrivialCube(ModBlocks.GROWTH_CHAMBER.get());
+        blockModels.createTrivialCube(ModBlocks.ENCHANTING_TABLE_TIER0.get());
+        blockModels.createTrivialCube(ModBlocks.ENCHANTING_TABLE_TIER1.get());
     }
 
     @Override

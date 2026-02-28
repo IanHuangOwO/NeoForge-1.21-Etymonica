@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "etymonica:block/growth_chamber"
+    "model": "etymonica:item/tuning_fork"
   }
 }

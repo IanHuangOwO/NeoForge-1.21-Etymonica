@@ -1,6 +1,6 @@
 package org.iansaididontcare.etymonica.screen;
 
-import org.iansaididontcare.etymonica.screen.custom.GrowthChamberMenu;
+import org.iansaididontcare.etymonica.screen.custom.EnchantingTableMenu;
 import org.iansaididontcare.etymonica.screen.custom.PedestalMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -19,8 +19,8 @@ public class ModMenuTypes {
     public static final DeferredHolder<MenuType<?>, MenuType<PedestalMenu>> PEDESTAL_MENU =
             registerMenuType("pedestal_menu", PedestalMenu::new);
 
-    public static final DeferredHolder<MenuType<?>, MenuType<GrowthChamberMenu>> GROWTH_CHAMBER_MENU =
-            registerMenuType("growth_chamber_menu", GrowthChamberMenu::new);
+    public static final DeferredHolder<MenuType<?>, MenuType<EnchantingTableMenu>> ENCHANTING_TABLE_MENU =
+            registerMenuType("enchanting_table_menu", EnchantingTableMenu::new);
 
     private static <T extends AbstractContainerMenu>DeferredHolder<MenuType<?>, MenuType<T>> registerMenuType(String name,
                                                                                                               IContainerFactory<T> factory) {

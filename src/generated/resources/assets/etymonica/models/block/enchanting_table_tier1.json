@@ -1,6 +1,6 @@
 {
   "parent": "minecraft:block/cube_all",
   "textures": {
-    "all": "etymonica:block/growth_chamber"
+    "all": "etymonica:block/enchanting_table_tier1"
   }
 }

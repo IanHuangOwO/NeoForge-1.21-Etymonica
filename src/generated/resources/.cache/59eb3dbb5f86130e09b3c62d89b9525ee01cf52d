@@ -1,4 +1,5 @@
-// 1.21.11	2026-02-23T09:42:40.339711	Loot Tables
-d5c5b7e109dfe10034961995cbb446ac81ad1117 data/etymonica/loot_table/blocks/growth_chamber.json
+// 1.21.11	2026-02-27T19:15:23.8712296	Loot Tables
+367c1f7d90891cbf3ac56b3f473f596032fe0454 data/etymonica/loot_table/blocks/enchanting_table_tier0.json
+ca5651487df208f979a00cbb2d2b11bf05e1b095 data/etymonica/loot_table/blocks/enchanting_table_tier1.json
 652c06b3528f2a1be010f91420213925b9287ae0 data/etymonica/loot_table/blocks/orichalcum_block.json
 cb7a6dc065ae7e93fbe476843c3897ab64953930 data/etymonica/loot_table/blocks/pedestal.json

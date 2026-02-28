@@ -1,0 +1,21 @@
+{
+  "type": "minecraft:block",
+  "pools": [
+    {
+      "bonus_rolls": 0.0,
+      "conditions": [
+        {
+          "condition": "minecraft:survives_explosion"
+        }
+      ],
+      "entries": [
+        {
+          "type": "minecraft:item",
+          "name": "etymonica:enchanting_table_tier0"
+        }
+      ],
+      "rolls": 1.0
+    }
+  ],
+  "random_sequence": "etymonica:blocks/enchanting_table_tier0"
+}

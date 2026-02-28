@@ -7,6 +7,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.iansaididontcare.etymonica.Etymonica;
+import org.iansaididontcare.etymonica.item.custom.TuningFork;
 
 public class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Etymonica.MOD_ID);
@@ -19,6 +20,9 @@ public class ModItems {
 
     public static final DeferredItem<Item> ORICHALCUM_INGOT = ITEMS.register("orichalcum_ingot",
             registryName -> new Item(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName))));
+
+    public static final DeferredItem<Item> TUNING_FORK = ITEMS.register("tuning_fork",
+            registryName -> new TuningFork(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName))));
 
     public static void register(IEventBus eventBus) {ITEMS.register(eventBus);}
 }
