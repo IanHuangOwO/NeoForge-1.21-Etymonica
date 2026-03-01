@@ -1,6 +1,8 @@
 package org.iansaididontcare.etymonica;
 
 import net.minecraft.client.Minecraft;
+import net.minecraft.client.renderer.ItemBlockRenderTypes;
+import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.ModContainer;
@@ -14,6 +16,7 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import org.iansaididontcare.etymonica.block.entity.ModBlockEntities;
 import org.iansaididontcare.etymonica.block.entity.renderer.EnchantingTableBlockEntityRenderer;
 import org.iansaididontcare.etymonica.block.entity.renderer.PedestalBlockEntityRenderer;
+import org.iansaididontcare.etymonica.fluid.ModFluids;
 import org.iansaididontcare.etymonica.screen.ModMenuTypes;
 import org.iansaididontcare.etymonica.screen.custom.EnchantingTableScreen;
 import org.iansaididontcare.etymonica.screen.custom.PedestalScreen;
@@ -32,7 +35,11 @@ public class EtymonicaClient {
 
     @SubscribeEvent
     static void onClientSetup(FMLClientSetupEvent event) {
-        // Some client setup code
+        event.enqueueWork(() -> {
+            ItemBlockRenderTypes.setRenderLayer(ModFluids.LIQUID_EXPERIENCE.get(), ChunkSectionLayer.TRANSLUCENT);
+            ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_LIQUID_EXPERIENCE.get(), ChunkSectionLayer.TRANSLUCENT);
+        });
+
         Etymonica.LOGGER.info("HELLO FROM CLIENT SETUP");
         Etymonica.LOGGER.info("MINECRAFT NAME >> {}", Minecraft.getInstance().getUser().getName());
     }

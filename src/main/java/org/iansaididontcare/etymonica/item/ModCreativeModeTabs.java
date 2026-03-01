@@ -26,6 +26,7 @@ public class ModCreativeModeTabs {
                         output.accept(ModItems.ORICHALCUM_INGOT);
                         output.accept(ModItems.TUNING_FORK);
                         output.accept(ModItems.QUILL_TIER0);
+                        output.accept(ModItems.LIQUID_EXPERIENCE_BUCKET);
                     }).build());
 
     public static final Supplier<CreativeModeTab> ETYMONICA_BLOCK_TAB = CREATIVE_MODE_TAB.register("etmonica_blocks_tab",
@@ -37,6 +38,7 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.PEDESTAL);
                         output.accept(ModBlocks.ENCHANTING_TABLE_TIER0);
                         output.accept(ModBlocks.ENCHANTING_TABLE_TIER1);
+                        output.accept(ModBlocks.BRAIN_IN_A_JAR);
                     }).build());
 
     public static void register(IEventBus eventBus) {CREATIVE_MODE_TAB.register(eventBus);}

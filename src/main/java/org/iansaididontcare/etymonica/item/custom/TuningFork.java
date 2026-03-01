@@ -48,14 +48,20 @@ public class TuningFork extends Item {
     ) {
         super.appendHoverText(stack, context, tooltipDisplay, tooltipAdder, flag);
 
+        tooltipAdder.accept(Component.translatable("tooltip.etymonica.tuning_fork.usage_header").withStyle(ChatFormatting.GOLD));
+        tooltipAdder.accept(Component.translatable("tooltip.etymonica.tuning_fork.usage.bind").withStyle(ChatFormatting.GRAY));
+        tooltipAdder.accept(Component.translatable("tooltip.etymonica.tuning_fork.usage.link").withStyle(ChatFormatting.GRAY));
+        tooltipAdder.accept(Component.translatable("tooltip.etymonica.tuning_fork.usage.clear").withStyle(ChatFormatting.GRAY));
+
         Bound bound = getBound(stack);
         if (bound == null) {
-            tooltipAdder.accept(Component.literal("Unbound").withStyle(ChatFormatting.GRAY));
+            tooltipAdder.accept(Component.translatable("tooltip.etymonica.tuning_fork.unbound").withStyle(ChatFormatting.DARK_GRAY));
             return;
         }
 
         BlockPos p = bound.pos();
-        tooltipAdder.accept(Component.literal("Bound: " + p.getX() + ", " + p.getY() + ", " + p.getZ()).withStyle(ChatFormatting.GRAY));
+        tooltipAdder.accept(Component.translatable("tooltip.etymonica.tuning_fork.bound", p.getX(), p.getY(), p.getZ())
+                .withStyle(ChatFormatting.GRAY));
 
         // Client-only: read bound table status for relink progress
         try {
@@ -65,13 +71,15 @@ public class TuningFork extends Item {
             Level level = player.level();
             String hereDim = level.dimension().toString();
             if (!bound.dimId().equals(hereDim)) {
-                tooltipAdder.accept(Component.literal("Different dimension").withStyle(ChatFormatting.RED));
+                tooltipAdder.accept(Component.translatable("tooltip.etymonica.tuning_fork.different_dimension")
+                        .withStyle(ChatFormatting.RED));
                 return;
             }
 
             BlockEntity be = level.getBlockEntity(bound.pos());
             if (!(be instanceof EnchantingTableBlockEntity table)) {
-                tooltipAdder.accept(Component.literal("(Table not loaded)").withStyle(ChatFormatting.DARK_GRAY));
+                tooltipAdder.accept(Component.translatable("tooltip.etymonica.tuning_fork.table_not_loaded")
+                        .withStyle(ChatFormatting.DARK_GRAY));
                 return;
             }
 

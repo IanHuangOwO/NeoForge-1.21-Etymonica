@@ -1,6 +1,6 @@
 {
   "modifiers": {
-    "minecraft:chiseled_bookshelf": { "speed": 0.1, "efficiency": 0.0, "stability": 0.0 },
+    "minecraft:chiseled_bookshelf": { "speed": 0.0, "efficiency": 0.0, "stability": 0.0 },
     "etymonica:orichalcum_block": { "speed": 0.03, "efficiency": 0.02, "stability": 0.01 }
   }
 }

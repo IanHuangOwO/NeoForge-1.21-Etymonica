@@ -2,15 +2,19 @@ package org.iansaididontcare.etymonica.block;
 
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.level.block.Block;
+import net.minecraft.world.level.block.LiquidBlock;
 import net.minecraft.world.level.block.SoundType;
 import net.minecraft.world.level.block.state.BlockBehaviour;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.iansaididontcare.etymonica.Etymonica;
+import org.iansaididontcare.etymonica.block.custom.BrainInAJarBlock;
 import org.iansaididontcare.etymonica.block.custom.EnchantingTableBlock;
 import org.iansaididontcare.etymonica.block.custom.PedestalBlock;
+import org.iansaididontcare.etymonica.fluid.ModFluids;
 import org.iansaididontcare.etymonica.item.ModItems;
+import org.iansaididontcare.etymonica.item.custom.BrainInAJarItem;
 
 import java.util.function.Function;
 
@@ -34,6 +38,19 @@ public class ModBlocks {
                     .strength(4.0f)
                     .sound(SoundType.WOOD)));
 
+    public static final DeferredBlock<Block> BRAIN_IN_A_JAR = registerBlock("brain_in_a_jar",
+            properties -> new BrainInAJarBlock(properties
+                    .strength(2.0f)
+                    .sound(SoundType.GLASS)
+                    .noOcclusion()));
+
+    public static final DeferredBlock<LiquidBlock> LIQUID_EXPERIENCE_BLOCK = BLOCKS.registerBlock("liquid_experience_block",
+            properties -> new LiquidBlock(ModFluids.LIQUID_EXPERIENCE.get(),
+                    properties
+                            .replaceable()
+                            .noCollision()
+                            .strength(100.0F)));
+
     private static <T extends Block> DeferredBlock<T> registerBlock(String name, Function<BlockBehaviour.Properties, T> function) {
         DeferredBlock<T> toReturn = BLOCKS.registerBlock(name, function);
         registerBlockItem(name, toReturn);
@@ -41,7 +58,12 @@ public class ModBlocks {
     }
 
     private static <T extends Block> void registerBlockItem(String name, DeferredBlock<T> block) {
-        ModItems.ITEMS.registerItem(name, (properties) -> new BlockItem(block.get(), properties.useBlockDescriptionPrefix()));
+        ModItems.ITEMS.registerItem(name, (properties) -> {
+            if ("brain_in_a_jar".equals(name)) {
+                return new BrainInAJarItem(block.get(), properties.useBlockDescriptionPrefix().stacksTo(1));
+            }
+            return new BlockItem(block.get(), properties.useBlockDescriptionPrefix());
+        });
     }
 
     public static void register(IEventBus eventBus) {

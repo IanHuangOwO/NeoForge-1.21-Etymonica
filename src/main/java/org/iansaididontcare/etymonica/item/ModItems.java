@@ -2,12 +2,15 @@ package org.iansaididontcare.etymonica.item;
 
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
+import net.minecraft.world.item.BucketItem;
 import net.minecraft.world.item.Item;
+import net.minecraft.world.item.Items;
 import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.iansaididontcare.etymonica.Etymonica;
-import org.iansaididontcare.etymonica.item.custom.QuillTier0;
+import org.iansaididontcare.etymonica.fluid.ModFluids;
+import org.iansaididontcare.etymonica.item.custom.Quill;
 import org.iansaididontcare.etymonica.item.custom.TuningFork;
 
 public class ModItems {
@@ -26,7 +29,14 @@ public class ModItems {
             registryName -> new TuningFork(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName))));
 
     public static final DeferredItem<Item> QUILL_TIER0 = ITEMS.register("quill_tier0",
-            registryName -> new QuillTier0(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName))));
+            registryName -> new Quill(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName))));
+
+    public static final DeferredItem<Item> LIQUID_EXPERIENCE_BUCKET = ITEMS.register("liquid_experience_bucket",
+            registryName -> new BucketItem(ModFluids.LIQUID_EXPERIENCE.get(),
+                    new Item.Properties()
+                            .setId(ResourceKey.create(Registries.ITEM, registryName))
+                            .stacksTo(1)
+                            .craftRemainder(Items.BUCKET)));
 
     public static void register(IEventBus eventBus) {ITEMS.register(eventBus);}
 }

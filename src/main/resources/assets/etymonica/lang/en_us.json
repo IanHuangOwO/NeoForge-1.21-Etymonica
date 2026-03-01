@@ -2,12 +2,15 @@
   "item.etymonica.etymonicon": "Etymonicon",
   "item.etymonica.raw_orichalcum": "Raw Orichalcum",
   "item.etymonica.orichalcum_ingot": "Orichalcum Ingot",
+  "item.etymonica.liquid_experience_bucket": "Liquid Experience Bucket",
   "item.etymonica.stygian_ink": "Stygian Ink",
   "item.etymonica.orichalcum_quill": "Orichalcum Quill",
 
   "block.etymonica.orichalcum_ore": "Orichalcum Ore",
   "block.etymonica.deepslate_orichalcum_ore": "Deepslate Orichalcum Ore",
   "block.etymonica.orichalcum_block": "Orichalcum Block",
+  "block.etymonica.brain_in_a_jar": "Brain in a Jar",
+  "block.etymonica.liquid_experience_block": "Liquid Experience",
 
   "creativetab.etymonica.etymonica_items": "Etymonica Items",
   "creativetab.etymonica.etymonica_blocks": "Etymonica Blocks",
@@ -35,5 +38,16 @@
   "message.etymonica.tuning_fork.not_bound": "Tuning Fork is not bound to a table.",
   "message.etymonica.tuning_fork.wrong_dimension": "Bound table is in a different dimension.",
   "message.etymonica.tuning_fork.bound_missing": "Bound table is missing. Clearing bind.",
-  "message.etymonica.tuning_fork.unbound": "Tuning Fork unbound."
+  "message.etymonica.tuning_fork.unbound": "Tuning Fork unbound.",
+  "message.etymonica.brain_in_a_jar.storage": "Stored XP Fluid: %s / %s mB",
+
+  "tooltip.etymonica.tuning_fork.usage_header": "Functions",
+  "tooltip.etymonica.tuning_fork.usage.bind": "Shift + Right-click Enchanting Table: bind / relink toggle",
+  "tooltip.etymonica.tuning_fork.usage.link": "Right-click Modifier: link or unlink to bound table",
+  "tooltip.etymonica.tuning_fork.usage.clear": "Shift + Right-click Air: clear bind",
+  "tooltip.etymonica.tuning_fork.unbound": "Unbound",
+  "tooltip.etymonica.tuning_fork.bound": "Bound: %s, %s, %s",
+  "tooltip.etymonica.tuning_fork.different_dimension": "Different dimension",
+  "tooltip.etymonica.tuning_fork.table_not_loaded": "(Table not loaded)",
+  "tooltip.etymonica.brain_in_a_jar.storage": "Stored XP Fluid: %s / %s mB"
 }

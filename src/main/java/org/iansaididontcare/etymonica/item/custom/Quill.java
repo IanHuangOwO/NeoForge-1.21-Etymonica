@@ -11,8 +11,8 @@ import org.iansaididontcare.etymonica.block.entity.EnchantingTableBlockEntity;
 import org.iansaididontcare.etymonica.enchanting.EnchantingTableMessages;
 import org.iansaididontcare.etymonica.tag.ModBlockTags;
 
-public class QuillTier0 extends Item {
-    public QuillTier0(Properties properties) {
+public class Quill extends Item {
+    public Quill(Properties properties) {
         super(properties);
     }
 

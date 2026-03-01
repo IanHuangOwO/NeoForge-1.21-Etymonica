@@ -12,6 +12,8 @@ import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import org.iansaididontcare.etymonica.block.ModBlocks;
 import org.iansaididontcare.etymonica.block.entity.ModBlockEntities;
 import org.iansaididontcare.etymonica.block.entity.renderer.PedestalBlockEntityRenderer;
+import org.iansaididontcare.etymonica.events.ModEvents;
+import org.iansaididontcare.etymonica.fluid.ModFluids;
 import org.iansaididontcare.etymonica.item.ModCreativeModeTabs;
 import org.iansaididontcare.etymonica.item.ModItems;
 import org.iansaididontcare.etymonica.recipe.ModRecipes;
@@ -49,10 +51,12 @@ public class Etymonica {
         // Note that this is necessary if and only if we want *this* class (ExampleMod) to respond directly to events.
         // Do not add this line if there are no @SubscribeEvent-annotated functions in this class, like onServerStarting() below.
         NeoForge.EVENT_BUS.register(this);
+        ModEvents.register();
 
         ModCreativeModeTabs.register(modEventBus);
 
         ModItems.register(modEventBus);
+        ModFluids.register(modEventBus);
         ModBlocks.register(modEventBus);
 
         ModBlockEntities.register((modEventBus));

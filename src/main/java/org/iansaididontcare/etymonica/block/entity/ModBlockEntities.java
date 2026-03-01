@@ -23,6 +23,11 @@ public class ModBlockEntities {
                     ModBlocks.ENCHANTING_TABLE_TIER0.get(),
                     ModBlocks.ENCHANTING_TABLE_TIER1.get()));
 
+    public static final Supplier<BlockEntityType<BrainInAJarBlockEntity>> BRAIN_IN_A_JAR_BE =
+            BLOCK_ENTITIES.register("brain_in_a_jar_be", () -> new BlockEntityType<>(
+                    BrainInAJarBlockEntity::new,
+                    ModBlocks.BRAIN_IN_A_JAR.get()));
+
     public static void register(IEventBus eventBus) {
         BLOCK_ENTITIES.register(eventBus);
     }
