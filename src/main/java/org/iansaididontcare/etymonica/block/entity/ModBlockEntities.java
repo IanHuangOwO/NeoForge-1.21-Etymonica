@@ -6,6 +6,7 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.iansaididontcare.etymonica.Etymonica;
 import org.iansaididontcare.etymonica.block.ModBlocks;
+import org.iansaididontcare.etymonica.block.entity.jar.ZombieBrainInAJarBlockEntity;
 
 import java.util.function.Supplier;
 
@@ -23,9 +24,9 @@ public class ModBlockEntities {
                     ModBlocks.ENCHANTING_TABLE_TIER0.get(),
                     ModBlocks.ENCHANTING_TABLE_TIER1.get()));
 
-    public static final Supplier<BlockEntityType<BrainInAJarBlockEntity>> BRAIN_IN_A_JAR_BE =
+    public static final Supplier<BlockEntityType<ZombieBrainInAJarBlockEntity>> BRAIN_IN_A_JAR_BE =
             BLOCK_ENTITIES.register("brain_in_a_jar_be", () -> new BlockEntityType<>(
-                    BrainInAJarBlockEntity::new,
+                    ZombieBrainInAJarBlockEntity::new,
                     ModBlocks.BRAIN_IN_A_JAR.get()));
 
     public static void register(IEventBus eventBus) {

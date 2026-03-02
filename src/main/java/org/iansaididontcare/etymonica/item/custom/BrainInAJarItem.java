@@ -9,7 +9,8 @@ import net.minecraft.world.item.TooltipFlag;
 import net.minecraft.world.item.component.CustomData;
 import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.block.Block;
-import org.iansaididontcare.etymonica.block.entity.BrainInAJarBlockEntity;
+import org.iansaididontcare.etymonica.block.entity.AbstractJarBlockEntity;
+import org.iansaididontcare.etymonica.block.entity.jar.ZombieBrainInAJarBlockEntity;
 
 import java.util.function.Consumer;
 
@@ -26,7 +27,7 @@ public class BrainInAJarItem extends BlockItem {
         tooltipAdder.accept(Component.translatable(
                 "tooltip.etymonica.brain_in_a_jar.storage",
                 stored,
-                BrainInAJarBlockEntity.CAPACITY_MILLIBUCKETS
+                ZombieBrainInAJarBlockEntity.CAPACITY_MILLIBUCKETS
         ));
     }
 
@@ -36,19 +37,19 @@ public class BrainInAJarItem extends BlockItem {
             return 0;
         }
         return Math.max(0, Math.min(
-                BrainInAJarBlockEntity.CAPACITY_MILLIBUCKETS,
-                tag.getInt(BrainInAJarBlockEntity.STORED_MILLIBUCKETS_KEY).orElse(0)
+                ZombieBrainInAJarBlockEntity.CAPACITY_MILLIBUCKETS,
+                tag.getInt(AbstractJarBlockEntity.STORED_MILLIBUCKETS_KEY).orElse(0)
         ));
     }
 
     public static void setStoredMillibuckets(ItemStack stack, int amount) {
-        int clamped = Math.max(0, Math.min(BrainInAJarBlockEntity.CAPACITY_MILLIBUCKETS, amount));
+        int clamped = Math.max(0, Math.min(ZombieBrainInAJarBlockEntity.CAPACITY_MILLIBUCKETS, amount));
         if (clamped <= 0) {
             CompoundTag existing = getJarTag(stack);
             if (existing == null) {
                 return;
             }
-            existing.remove(BrainInAJarBlockEntity.STORED_MILLIBUCKETS_KEY);
+            existing.remove(AbstractJarBlockEntity.STORED_MILLIBUCKETS_KEY);
             if (existing.isEmpty()) {
                 stack.remove(DataComponents.CUSTOM_DATA);
             } else {
@@ -59,7 +60,7 @@ public class BrainInAJarItem extends BlockItem {
 
         CompoundTag tag = getJarTag(stack);
         CompoundTag updated = tag != null ? tag : new CompoundTag();
-        updated.putInt(BrainInAJarBlockEntity.STORED_MILLIBUCKETS_KEY, clamped);
+        updated.putInt(AbstractJarBlockEntity.STORED_MILLIBUCKETS_KEY, clamped);
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(updated));
     }
 

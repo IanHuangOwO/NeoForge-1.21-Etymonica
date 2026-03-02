@@ -9,9 +9,9 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.iansaididontcare.etymonica.Etymonica;
-import org.iansaididontcare.etymonica.block.custom.BrainInAJarBlock;
 import org.iansaididontcare.etymonica.block.custom.EnchantingTableBlock;
 import org.iansaididontcare.etymonica.block.custom.PedestalBlock;
+import org.iansaididontcare.etymonica.block.custom.jar.ZombieBrainInAJarBlock;
 import org.iansaididontcare.etymonica.fluid.ModFluids;
 import org.iansaididontcare.etymonica.item.ModItems;
 import org.iansaididontcare.etymonica.item.custom.BrainInAJarItem;
@@ -39,7 +39,7 @@ public class ModBlocks {
                     .sound(SoundType.WOOD)));
 
     public static final DeferredBlock<Block> BRAIN_IN_A_JAR = registerBlock("brain_in_a_jar",
-            properties -> new BrainInAJarBlock(properties
+            properties -> new ZombieBrainInAJarBlock(properties
                     .strength(2.0f)
                     .sound(SoundType.GLASS)
                     .noOcclusion()));

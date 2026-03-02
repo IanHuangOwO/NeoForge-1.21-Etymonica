@@ -5,7 +5,7 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import org.iansaididontcare.etymonica.block.entity.BrainInAJarBlockEntity;
+import org.iansaididontcare.etymonica.block.entity.jar.ZombieBrainInAJarBlockEntity;
 import org.iansaididontcare.etymonica.item.custom.BrainInAJarItem;
 
 public final class ModEvents {
@@ -42,7 +42,7 @@ public final class ModEvents {
             }
 
             int stored = BrainInAJarItem.getStoredMillibuckets(stack);
-            int spaceMb = BrainInAJarBlockEntity.CAPACITY_MILLIBUCKETS - stored;
+            int spaceMb = ZombieBrainInAJarBlockEntity.CAPACITY_MILLIBUCKETS - stored;
             if (spaceMb <= 0) {
                 continue;
             }
