@@ -1,24 +1,13 @@
 package org.iansaididontcare.etymonica;
 
-import net.minecraft.client.renderer.ItemBlockRenderTypes;
-import net.minecraft.client.renderer.chunk.ChunkSectionLayer;
-import net.minecraft.client.renderer.entity.EntityRenderers;
-import net.neoforged.api.distmarker.Dist;
-import net.neoforged.fml.common.EventBusSubscriber;
-import net.neoforged.fml.event.lifecycle.FMLClientSetupEvent;
-import net.neoforged.neoforge.client.event.EntityRenderersEvent;
-import net.neoforged.neoforge.client.event.RegisterMenuScreensEvent;
-import net.neoforged.neoforge.client.event.RegisterParticleProvidersEvent;
 import org.iansaididontcare.etymonica.block.ModBlocks;
 import org.iansaididontcare.etymonica.block.entity.ModBlockEntities;
-import org.iansaididontcare.etymonica.block.entity.renderer.PedestalBlockEntityRenderer;
 import org.iansaididontcare.etymonica.events.ModEvents;
 import org.iansaididontcare.etymonica.fluid.ModFluids;
 import org.iansaididontcare.etymonica.item.ModCreativeModeTabs;
 import org.iansaididontcare.etymonica.item.ModItems;
 import org.iansaididontcare.etymonica.recipe.ModRecipes;
 import org.iansaididontcare.etymonica.screen.ModMenuTypes;
-import org.iansaididontcare.etymonica.screen.custom.PedestalScreen;
 import org.slf4j.Logger;
 
 import com.mojang.logging.LogUtils;

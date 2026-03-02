@@ -16,7 +16,7 @@
       ],
       "vmArgs": [
         "@C:\\Users\\iansaididontcare\\Documents\\Minecraft_Mods\\NeoForge-1.21-Etymonica\\build\\moddev\\clientRunVmArgs.txt",
-        "-Dfml.modFolders\u003detymonica%%C:\\Users\\iansaididontcare\\Documents\\Minecraft_Mods\\NeoForge-1.21-Etymonica\\bin\\main"
+        "-Dfml.modFolders=etymonica%%C:\\Users\\iansaididontcare\\Documents\\Minecraft_Mods\\NeoForge-1.21-Etymonica\\build\\classes\\java\\main;etymonica%%C:\\Users\\iansaididontcare\\Documents\\Minecraft_Mods\\NeoForge-1.21-Etymonica\\build\\resources\\main"
       ],
       "cwd": "${workspaceFolder}\\run",
       "env": {},
@@ -38,7 +38,7 @@
       ],
       "vmArgs": [
         "@C:\\Users\\iansaididontcare\\Documents\\Minecraft_Mods\\NeoForge-1.21-Etymonica\\build\\moddev\\dataRunVmArgs.txt",
-        "-Dfml.modFolders\u003detymonica%%C:\\Users\\iansaididontcare\\Documents\\Minecraft_Mods\\NeoForge-1.21-Etymonica\\bin\\main"
+        "-Dfml.modFolders=etymonica%%C:\\Users\\iansaididontcare\\Documents\\Minecraft_Mods\\NeoForge-1.21-Etymonica\\build\\classes\\java\\main;etymonica%%C:\\Users\\iansaididontcare\\Documents\\Minecraft_Mods\\NeoForge-1.21-Etymonica\\build\\resources\\main"
       ],
       "cwd": "${workspaceFolder}\\run",
       "env": {},
@@ -60,7 +60,7 @@
       ],
       "vmArgs": [
         "@C:\\Users\\iansaididontcare\\Documents\\Minecraft_Mods\\NeoForge-1.21-Etymonica\\build\\moddev\\gameTestServerRunVmArgs.txt",
-        "-Dfml.modFolders\u003detymonica%%C:\\Users\\iansaididontcare\\Documents\\Minecraft_Mods\\NeoForge-1.21-Etymonica\\bin\\main"
+        "-Dfml.modFolders=etymonica%%C:\\Users\\iansaididontcare\\Documents\\Minecraft_Mods\\NeoForge-1.21-Etymonica\\build\\classes\\java\\main;etymonica%%C:\\Users\\iansaididontcare\\Documents\\Minecraft_Mods\\NeoForge-1.21-Etymonica\\build\\resources\\main"
       ],
       "cwd": "${workspaceFolder}\\run",
       "env": {},
@@ -82,7 +82,7 @@
       ],
       "vmArgs": [
         "@C:\\Users\\iansaididontcare\\Documents\\Minecraft_Mods\\NeoForge-1.21-Etymonica\\build\\moddev\\serverRunVmArgs.txt",
-        "-Dfml.modFolders\u003detymonica%%C:\\Users\\iansaididontcare\\Documents\\Minecraft_Mods\\NeoForge-1.21-Etymonica\\bin\\main"
+        "-Dfml.modFolders=etymonica%%C:\\Users\\iansaididontcare\\Documents\\Minecraft_Mods\\NeoForge-1.21-Etymonica\\build\\classes\\java\\main;etymonica%%C:\\Users\\iansaididontcare\\Documents\\Minecraft_Mods\\NeoForge-1.21-Etymonica\\build\\resources\\main"
       ],
       "cwd": "${workspaceFolder}\\run",
       "env": {},
