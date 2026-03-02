@@ -1,4 +1,4 @@
-package org.iansaididontcare.etymonica.block.entity.enchanting;
+package org.iansaididontcare.etymonica.block.entity.enchantingtable.enchanter;
 
 public final class EnchantingTableDataSlots {
     private EnchantingTableDataSlots() {}

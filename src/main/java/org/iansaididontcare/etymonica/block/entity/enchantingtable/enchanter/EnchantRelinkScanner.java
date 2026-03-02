@@ -1,4 +1,4 @@
-package org.iansaididontcare.etymonica.block.entity.enchanting;
+package org.iansaididontcare.etymonica.block.entity.enchantingtable.enchanter;
 
 import net.minecraft.core.BlockPos;
 import org.jetbrains.annotations.Nullable;

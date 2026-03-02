@@ -1,4 +1,4 @@
-package org.iansaididontcare.etymonica.block.entity.enchanting;
+package org.iansaididontcare.etymonica.block.entity.enchantingtable.enchanter;
 
 import it.unimi.dsi.fastutil.objects.Object2IntMap;
 import net.minecraft.core.BlockPos;

@@ -9,7 +9,7 @@ import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
 import org.iansaididontcare.etymonica.block.entity.AbstractEnchantingTableBlockEntity;
-import org.iansaididontcare.etymonica.block.entity.enchanting.EnchantingTableDataSlots;
+import org.iansaididontcare.etymonica.block.entity.enchantingtable.enchanter.EnchantingTableDataSlots;
 import org.iansaididontcare.etymonica.screen.ModMenuTypes;
 
 public class EnchantingTableMenu extends AbstractContainerMenu {

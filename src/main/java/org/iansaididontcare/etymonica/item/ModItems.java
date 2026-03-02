@@ -26,10 +26,10 @@ public class ModItems {
             registryName -> new Item(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName))));
 
     public static final DeferredItem<Item> TUNING_FORK = ITEMS.register("tuning_fork",
-            registryName -> new TuningFork(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName))));
+            registryName -> new TuningFork(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName)).stacksTo(1)));
 
     public static final DeferredItem<Item> QUILL_TIER0 = ITEMS.register("quill_tier0",
-            registryName -> new Quill(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName))));
+            registryName -> new Quill(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName)).stacksTo(1)));
 
     public static final DeferredItem<Item> LIQUID_EXPERIENCE_BUCKET = ITEMS.register("liquid_experience_bucket",
             registryName -> new BucketItem(ModFluids.LIQUID_EXPERIENCE.get(),
