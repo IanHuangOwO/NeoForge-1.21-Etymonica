@@ -8,7 +8,7 @@ import net.minecraft.world.inventory.ContainerData;
 import net.minecraft.world.inventory.Slot;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.neoforge.items.SlotItemHandler;
-import org.iansaididontcare.etymonica.block.entity.EnchantingTableBlockEntity;
+import org.iansaididontcare.etymonica.block.entity.AbstractEnchantingTableBlockEntity;
 import org.iansaididontcare.etymonica.block.entity.enchanting.EnchantingTableDataSlots;
 import org.iansaididontcare.etymonica.screen.ModMenuTypes;
 
@@ -30,26 +30,26 @@ public class EnchantingTableMenu extends AbstractContainerMenu {
     private static final int SLOT_ITEM_X = 80;
     private static final int SLOT_ITEM_Y = 35;
 
-    private final EnchantingTableBlockEntity blockEntity;
+    private final AbstractEnchantingTableBlockEntity blockEntity;
     private final ContainerData data;
 
     public EnchantingTableMenu(int id, Inventory playerInv, FriendlyByteBuf buf) {
         this(id, playerInv, getBlockEntity(playerInv, buf));
     }
 
-    public EnchantingTableMenu(int id, Inventory playerInv, EnchantingTableBlockEntity be) {
+    public EnchantingTableMenu(int id, Inventory playerInv, AbstractEnchantingTableBlockEntity be) {
         this(id, playerInv, be, be.getData());
     }
 
-    public EnchantingTableMenu(int id, Inventory playerInv, EnchantingTableBlockEntity be, ContainerData data) {
+    public EnchantingTableMenu(int id, Inventory playerInv, AbstractEnchantingTableBlockEntity be, ContainerData data) {
         super(ModMenuTypes.ENCHANTING_TABLE_MENU.get(), id);
         this.blockEntity = be;
         this.data = data;
 
         addDataSlots(data);
 
-        this.addSlot(new SlotItemHandler(be.itemHandler, EnchantingTableBlockEntity.SLOT_FUTURE, SLOT_FUTURE_X, SLOT_FUTURE_Y));
-        this.addSlot(new SlotItemHandler(be.itemHandler, EnchantingTableBlockEntity.SLOT_ITEM, SLOT_ITEM_X, SLOT_ITEM_Y));
+        this.addSlot(new SlotItemHandler(be.itemHandler, AbstractEnchantingTableBlockEntity.SLOT_FUTURE, SLOT_FUTURE_X, SLOT_FUTURE_Y));
+        this.addSlot(new SlotItemHandler(be.itemHandler, AbstractEnchantingTableBlockEntity.SLOT_ITEM, SLOT_ITEM_X, SLOT_ITEM_Y));
 
         addPlayerInventory(playerInv);
         addPlayerHotbar(playerInv);
@@ -85,8 +85,8 @@ public class EnchantingTableMenu extends AbstractContainerMenu {
             // Shift-click from player inventory: try enchanting input slot only.
             if (sourceStack.isEnchantable()) {
                 if (!moveItemStackTo(sourceStack,
-                        EnchantingTableBlockEntity.SLOT_ITEM,
-                        EnchantingTableBlockEntity.SLOT_ITEM + 1,
+                        AbstractEnchantingTableBlockEntity.SLOT_ITEM,
+                        AbstractEnchantingTableBlockEntity.SLOT_ITEM + 1,
                         false)) {
                     return ItemStack.EMPTY;
                 }
@@ -129,11 +129,11 @@ public class EnchantingTableMenu extends AbstractContainerMenu {
         }
     }
 
-    private static EnchantingTableBlockEntity getBlockEntity(Inventory playerInv, FriendlyByteBuf buf) {
+    private static AbstractEnchantingTableBlockEntity getBlockEntity(Inventory playerInv, FriendlyByteBuf buf) {
         var level = playerInv.player.level();
         var pos = buf.readBlockPos();
         var be = level.getBlockEntity(pos);
-        if (!(be instanceof EnchantingTableBlockEntity table)) {
+        if (!(be instanceof AbstractEnchantingTableBlockEntity table)) {
             throw new IllegalStateException("EnchantingTableBlockEntity not found at " + pos);
         }
         return table;

@@ -20,7 +20,7 @@ public class ModMenuTypes {
             registerMenuType("pedestal_menu", PedestalMenu::new);
 
     public static final DeferredHolder<MenuType<?>, MenuType<EnchantingTableMenu>> ENCHANTING_TABLE_MENU =
-            registerMenuType("enchanting_table_menu", EnchantingTableMenu::new);
+            registerMenuType("enchanting_table_menu", (id, inv, buf) -> new EnchantingTableMenu(id, inv, buf));
 
     private static <T extends AbstractContainerMenu>DeferredHolder<MenuType<?>, MenuType<T>> registerMenuType(String name,
                                                                                                               IContainerFactory<T> factory) {

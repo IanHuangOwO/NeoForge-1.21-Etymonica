@@ -17,7 +17,7 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import org.iansaididontcare.etymonica.block.entity.EnchantingTableBlockEntity;
+import org.iansaididontcare.etymonica.block.entity.AbstractEnchantingTableBlockEntity;
 import org.iansaididontcare.etymonica.enchanting.EnchantingTableMessages;
 import org.iansaididontcare.etymonica.tag.ModBlockTags;
 import org.jetbrains.annotations.Nullable;
@@ -77,7 +77,7 @@ public class TuningFork extends Item {
             }
 
             BlockEntity be = level.getBlockEntity(bound.pos());
-            if (!(be instanceof EnchantingTableBlockEntity table)) {
+            if (!(be instanceof AbstractEnchantingTableBlockEntity table)) {
                 tooltipAdder.accept(Component.translatable("tooltip.etymonica.tuning_fork.table_not_loaded")
                         .withStyle(ChatFormatting.DARK_GRAY));
                 return;
@@ -116,7 +116,7 @@ public class TuningFork extends Item {
 
             // Already bound to this table -> toggle relink (start or cancel)
             BlockEntity be = level.getBlockEntity(clickedPos);
-            if (be instanceof EnchantingTableBlockEntity table) {
+            if (be instanceof AbstractEnchantingTableBlockEntity table) {
                 player.displayClientMessage(EnchantingTableMessages.action(table.beginOrCancelRelinkScan(player)), true);
             } else {
                 player.displayClientMessage(Component.translatable("message.etymonica.tuning_fork.table_missing"), true);
@@ -143,7 +143,7 @@ public class TuningFork extends Item {
         }
 
         BlockEntity be = level.getBlockEntity(bound.pos());
-        if (!(be instanceof EnchantingTableBlockEntity table)) {
+        if (!(be instanceof AbstractEnchantingTableBlockEntity table)) {
             if (player != null) player.displayClientMessage(Component.translatable("message.etymonica.tuning_fork.bound_missing"), true);
             clearBind(stack);
             return InteractionResult.SUCCESS;

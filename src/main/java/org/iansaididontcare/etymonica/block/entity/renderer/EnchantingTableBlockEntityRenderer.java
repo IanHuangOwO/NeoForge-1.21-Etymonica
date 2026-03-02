@@ -15,10 +15,10 @@ import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.phys.Vec3;
-import org.iansaididontcare.etymonica.block.entity.EnchantingTableBlockEntity;
+import org.iansaididontcare.etymonica.block.entity.AbstractEnchantingTableBlockEntity;
 import org.jetbrains.annotations.Nullable;
 
-public class EnchantingTableBlockEntityRenderer implements BlockEntityRenderer<EnchantingTableBlockEntity, EnchantingTableBlockEntityRenderState> {
+public class EnchantingTableBlockEntityRenderer implements BlockEntityRenderer<AbstractEnchantingTableBlockEntity, EnchantingTableBlockEntityRenderState> {
     private final ItemModelResolver itemModelResolver;
 
     public EnchantingTableBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -31,7 +31,7 @@ public class EnchantingTableBlockEntityRenderer implements BlockEntityRenderer<E
     }
 
     @Override
-    public void extractRenderState(EnchantingTableBlockEntity blockEntity, EnchantingTableBlockEntityRenderState renderState, float partialTick,
+    public void extractRenderState(AbstractEnchantingTableBlockEntity blockEntity, EnchantingTableBlockEntityRenderState renderState, float partialTick,
                                    Vec3 cameraPosition, @Nullable ModelFeatureRenderer.CrumblingOverlay breakProgress) {
         BlockEntityRenderer.super.extractRenderState(blockEntity, renderState, partialTick, cameraPosition, breakProgress);
 
@@ -41,7 +41,7 @@ public class EnchantingTableBlockEntityRenderer implements BlockEntityRenderer<E
 
         itemModelResolver.updateForTopItem(
                 renderState.itemStackRenderState,
-                blockEntity.itemHandler.getStackInSlot(EnchantingTableBlockEntity.SLOT_ITEM),
+                blockEntity.itemHandler.getStackInSlot(AbstractEnchantingTableBlockEntity.SLOT_ITEM),
                 ItemDisplayContext.FIXED,
                 blockEntity.getLevel(),
                 null,

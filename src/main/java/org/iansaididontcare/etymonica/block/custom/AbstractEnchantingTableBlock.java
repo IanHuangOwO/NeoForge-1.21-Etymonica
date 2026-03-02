@@ -13,28 +13,22 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.BaseEntityBlock;
 import net.minecraft.world.level.block.RenderShape;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import net.minecraft.world.level.block.entity.BlockEntityTicker;
-import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.phys.BlockHitResult;
-import org.iansaididontcare.etymonica.block.entity.EnchantingTableBlockEntity;
-import org.iansaididontcare.etymonica.block.entity.ModBlockEntities;
+import org.iansaididontcare.etymonica.block.entity.AbstractEnchantingTableBlockEntity;
 import org.iansaididontcare.etymonica.enchanting.EnchantingTableMessages;
 import org.iansaididontcare.etymonica.item.ModItems;
 import org.iansaididontcare.etymonica.tag.ModItemTags;
 import org.jetbrains.annotations.Nullable;
 
-public class EnchantingTableBlock extends BaseEntityBlock {
-    public static final MapCodec<EnchantingTableBlock> CODEC = simpleCodec(EnchantingTableBlock::new);
+public abstract class AbstractEnchantingTableBlock extends BaseEntityBlock {
 
-    public EnchantingTableBlock(Properties properties) {
+    public AbstractEnchantingTableBlock(Properties properties) {
         super(properties);
     }
 
     @Override
-    protected MapCodec<? extends BaseEntityBlock> codec() {
-        return CODEC;
-    }
+    protected abstract MapCodec<? extends BaseEntityBlock> codec();
 
     @Override
     protected RenderShape getRenderShape(BlockState state) {
@@ -43,25 +37,14 @@ public class EnchantingTableBlock extends BaseEntityBlock {
 
     @Nullable
     @Override
-    public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new EnchantingTableBlockEntity(pos, state);
-    }
-
-    @Nullable
-    @Override
-    public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
-        if (level.isClientSide()) return null;
-
-        return createTickerHelper(type, ModBlockEntities.ENCHANTING_TABLE_BE.get(),
-                (lvl, p, st, be) -> ((EnchantingTableBlockEntity) be).tickServer(lvl, p, st));
-    }
+    public abstract BlockEntity newBlockEntity(BlockPos pos, BlockState state);
 
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                           Player player, InteractionHand hand, BlockHitResult hit) {
         if (!level.isClientSide()) {
             BlockEntity be = level.getBlockEntity(pos);
-            if (be instanceof EnchantingTableBlockEntity table) {
+            if (be instanceof AbstractEnchantingTableBlockEntity table) {
 
                 ItemStack held = player.getItemInHand(hand);
                 boolean holdingFork = held.is(ModItems.TUNING_FORK.get());
@@ -73,7 +56,7 @@ public class EnchantingTableBlock extends BaseEntityBlock {
                 }
 
                 if (player.isCrouching() && holdingQuill) {
-                    if (table.itemHandler.getStackInSlot(EnchantingTableBlockEntity.SLOT_ITEM).isEmpty()) {
+                    if (table.itemHandler.getStackInSlot(AbstractEnchantingTableBlockEntity.SLOT_ITEM).isEmpty()) {
                         player.displayClientMessage(Component.translatable("message.etymonica.enchanting.missing_input"), true);
                         return InteractionResult.SUCCESS;
                     }

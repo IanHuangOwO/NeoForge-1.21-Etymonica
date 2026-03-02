@@ -9,7 +9,8 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredBlock;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.iansaididontcare.etymonica.Etymonica;
-import org.iansaididontcare.etymonica.block.custom.EnchantingTableBlock;
+import org.iansaididontcare.etymonica.block.custom.enchantingtable.EnchantingTableTier0Block;
+import org.iansaididontcare.etymonica.block.custom.enchantingtable.EnchantingTableTier1Block;
 import org.iansaididontcare.etymonica.block.custom.PedestalBlock;
 import org.iansaididontcare.etymonica.block.custom.jar.ZombieBrainInAJarBlock;
 import org.iansaididontcare.etymonica.fluid.ModFluids;
@@ -29,12 +30,12 @@ public class ModBlocks {
             (properties) -> new PedestalBlock(properties.noOcclusion()));
 
     public static final DeferredBlock<Block> ENCHANTING_TABLE_TIER0 = registerBlock("enchanting_table_tier0",
-            (properties) -> new EnchantingTableBlock(properties
+            (properties) -> new EnchantingTableTier0Block(properties
                     .strength(3.5f)
                     .sound(SoundType.WOOD)));
 
     public static final DeferredBlock<Block> ENCHANTING_TABLE_TIER1 = registerBlock("enchanting_table_tier1",
-            (properties) -> new EnchantingTableBlock(properties
+            (properties) -> new EnchantingTableTier1Block(properties
                     .strength(4.0f)
                     .sound(SoundType.WOOD)));
 

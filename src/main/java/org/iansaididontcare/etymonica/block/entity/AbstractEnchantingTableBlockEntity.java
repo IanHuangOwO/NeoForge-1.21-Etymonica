@@ -21,6 +21,7 @@ import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
@@ -45,7 +46,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
-public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvider {
+public abstract class AbstractEnchantingTableBlockEntity extends BlockEntity implements MenuProvider {
     // Core constants and machine modes.
     private static final int BASE_PROGRESS_TICKS = 640;
     private enum Mode {
@@ -207,8 +208,8 @@ public class EnchantingTableBlockEntity extends BlockEntity implements MenuProvi
         return renderRotation;
     }
 
-    public EnchantingTableBlockEntity(BlockPos pos, BlockState state) {
-        super(ModBlockEntities.ENCHANTING_TABLE_BE.get(), pos, state);
+    public AbstractEnchantingTableBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
+        super(type, pos, state);
     }
 
     // Menu provider entry points.

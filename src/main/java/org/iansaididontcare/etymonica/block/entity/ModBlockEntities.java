@@ -6,6 +6,8 @@ import net.neoforged.bus.api.IEventBus;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.iansaididontcare.etymonica.Etymonica;
 import org.iansaididontcare.etymonica.block.ModBlocks;
+import org.iansaididontcare.etymonica.block.entity.enchantingtable.EnchantingTableTier0BlockEntity;
+import org.iansaididontcare.etymonica.block.entity.enchantingtable.EnchantingTableTier1BlockEntity;
 import org.iansaididontcare.etymonica.block.entity.jar.ZombieBrainInAJarBlockEntity;
 
 import java.util.function.Supplier;
@@ -18,10 +20,14 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("pedestal_be", () -> new BlockEntityType<>(
                     PedestalBlockEntity::new, ModBlocks.PEDESTAL.get()));
 
-    public static final Supplier<BlockEntityType<EnchantingTableBlockEntity>> ENCHANTING_TABLE_BE =
-            BLOCK_ENTITIES.register("enchanting_table_be", () -> new BlockEntityType<>(
-                    EnchantingTableBlockEntity::new,
-                    ModBlocks.ENCHANTING_TABLE_TIER0.get(),
+    public static final Supplier<BlockEntityType<EnchantingTableTier0BlockEntity>> ENCHANTING_TABLE_TIER0_BE =
+            BLOCK_ENTITIES.register("enchanting_table_tier0_be", () -> new BlockEntityType<>(
+                    EnchantingTableTier0BlockEntity::new,
+                    ModBlocks.ENCHANTING_TABLE_TIER0.get()));
+
+    public static final Supplier<BlockEntityType<EnchantingTableTier1BlockEntity>> ENCHANTING_TABLE_TIER1_BE =
+            BLOCK_ENTITIES.register("enchanting_table_tier1_be", () -> new BlockEntityType<>(
+                    EnchantingTableTier1BlockEntity::new,
                     ModBlocks.ENCHANTING_TABLE_TIER1.get()));
 
     public static final Supplier<BlockEntityType<ZombieBrainInAJarBlockEntity>> BRAIN_IN_A_JAR_BE =

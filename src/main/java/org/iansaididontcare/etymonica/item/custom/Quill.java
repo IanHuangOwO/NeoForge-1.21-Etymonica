@@ -7,7 +7,7 @@ import net.minecraft.world.item.Item;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
-import org.iansaididontcare.etymonica.block.entity.EnchantingTableBlockEntity;
+import org.iansaididontcare.etymonica.block.entity.AbstractEnchantingTableBlockEntity;
 import org.iansaididontcare.etymonica.enchanting.EnchantingTableMessages;
 import org.iansaididontcare.etymonica.tag.ModBlockTags;
 
@@ -33,7 +33,7 @@ public class Quill extends Item {
         if (level.isClientSide()) return InteractionResult.SUCCESS;
 
         BlockEntity be = level.getBlockEntity(pos);
-        if (be instanceof EnchantingTableBlockEntity table) {
+        if (be instanceof AbstractEnchantingTableBlockEntity table) {
             player.displayClientMessage(EnchantingTableMessages.action(table.requestStartEnchanting()), true);
             return InteractionResult.SUCCESS;
         }
