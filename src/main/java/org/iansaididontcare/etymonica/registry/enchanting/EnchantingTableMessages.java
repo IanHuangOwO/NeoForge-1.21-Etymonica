@@ -1,7 +1,7 @@
-package org.iansaididontcare.etymonica.enchanting;
+package org.iansaididontcare.etymonica.registry.enchanting;
 
 import net.minecraft.network.chat.Component;
-import org.iansaididontcare.etymonica.block.entity.AbstractEnchantingTableBlockEntity.TableActionResult;
+import org.iansaididontcare.etymonica.registry.enchanting.api.TableActionResult;
 
 public final class EnchantingTableMessages {
     private EnchantingTableMessages() {}

@@ -12,7 +12,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
-import org.iansaididontcare.etymonica.enchanting.data.EnchantingTableData;
+import org.iansaididontcare.etymonica.registry.enchanting.data.EnchantingTableData;
 
 import java.util.HashMap;
 import java.util.Map;

@@ -1,4 +1,4 @@
-package org.iansaididontcare.etymonica.enchanting.data;
+package org.iansaididontcare.etymonica.registry.enchanting.data;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -7,6 +7,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.iansaididontcare.etymonica.Etymonica;
+import org.iansaididontcare.etymonica.registry.enchanting.api.EnchantmentWeightStats;
 
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
@@ -23,12 +24,14 @@ public final class EnchantmentWeightsLoader {
 
     public static void load(ResourceManager resourceManager) {
         Map<Identifier, Double> accumulationWeights = new HashMap<>();
+        double defaultAccumulation = 1.0d;
         Map<Identifier, Double> drainWeights = new HashMap<>();
+        double defaultDrain = 1.0d;
 
         Optional<Resource> resourceOpt = resourceManager.getResource(FILE_ID);
         if (resourceOpt.isEmpty()) {
             Etymonica.LOGGER.warn("Missing {}, using default enchantment weights.", FILE_ID);
-            EnchantingTableData.setEnchantmentWeights(Map.of(), 1.0d, Map.of(), 1.0d);
+            EnchantingTableData.setEnchantmentWeights(Map.of(), EnchantmentWeightStats.DEFAULT);
             return;
         }
 
@@ -40,20 +43,25 @@ public final class EnchantmentWeightsLoader {
             ParsedWeights drain = parseChannel(root.getAsJsonObject("drain"), root);
 
             accumulationWeights.putAll(accumulation.weights());
+            defaultAccumulation = accumulation.defaultWeight();
             drainWeights.putAll(drain.weights());
+            defaultDrain = drain.defaultWeight();
 
-            EnchantingTableData.setEnchantmentWeights(
-                    accumulationWeights,
-                    accumulation.defaultWeight(),
-                    drainWeights,
-                    drain.defaultWeight()
-            );
+            // Merge into combined map
+            Map<Identifier, EnchantmentWeightStats> merged = new HashMap<>();
+            for (Identifier id : accumulationWeights.keySet()) {
+                merged.put(id, new EnchantmentWeightStats(accumulationWeights.get(id), drainWeights.getOrDefault(id, defaultDrain)));
+            }
+            for (Identifier id : drainWeights.keySet()) {
+                if (!merged.containsKey(id)) {
+                    merged.put(id, new EnchantmentWeightStats(accumulationWeights.getOrDefault(id, defaultAccumulation), drainWeights.get(id)));
+                }
+            }
+
+            EnchantingTableData.setEnchantmentWeights(merged, new EnchantmentWeightStats(defaultAccumulation, defaultDrain));
             Etymonica.LOGGER.info(
-                    "Loaded enchantment weights: accumulation={} (default={}), drain={} (default={})",
-                    accumulationWeights.size(),
-                    accumulation.defaultWeight(),
-                    drainWeights.size(),
-                    drain.defaultWeight()
+                    "Loaded enchantment weights: entries={} (acc_def={}, drain_def={})",
+                    merged.size(), defaultAccumulation, defaultDrain
             );
         } catch (Exception ex) {
             Etymonica.LOGGER.error("Failed to load {} (keeping previous values).", FILE_ID, ex);

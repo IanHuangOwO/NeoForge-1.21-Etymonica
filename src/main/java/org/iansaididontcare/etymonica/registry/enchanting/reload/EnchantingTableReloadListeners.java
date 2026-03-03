@@ -1,4 +1,4 @@
-package org.iansaididontcare.etymonica.enchanting.reload;
+package org.iansaididontcare.etymonica.registry.enchanting.reload;
 
 import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.PreparableReloadListener;
@@ -7,9 +7,9 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import org.iansaididontcare.etymonica.Etymonica;
-import org.iansaididontcare.etymonica.enchanting.data.EnchantmentWeightsLoader;
-import org.iansaididontcare.etymonica.enchanting.data.EnchantingTableModifiersLoader;
-import org.iansaididontcare.etymonica.enchanting.data.EnchantingTableTiersLoader;
+import org.iansaididontcare.etymonica.registry.enchanting.data.EnchantmentWeightsLoader;
+import org.iansaididontcare.etymonica.registry.enchanting.data.EnchantingTableModifiersLoader;
+import org.iansaididontcare.etymonica.registry.enchanting.data.EnchantingTableTiersLoader;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;

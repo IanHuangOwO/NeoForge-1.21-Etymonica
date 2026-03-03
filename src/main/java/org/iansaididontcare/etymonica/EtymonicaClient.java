@@ -15,11 +15,10 @@ import net.neoforged.neoforge.client.gui.ConfigurationScreen;
 import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import org.iansaididontcare.etymonica.block.entity.ModBlockEntities;
 import org.iansaididontcare.etymonica.block.entity.renderer.EnchantingTableBlockEntityRenderer;
-import org.iansaididontcare.etymonica.block.entity.renderer.PedestalBlockEntityRenderer;
+import org.iansaididontcare.etymonica.block.entity.renderer.InfusionAltarBlockEntityRenderer;
 import org.iansaididontcare.etymonica.fluid.ModFluids;
 import org.iansaididontcare.etymonica.screen.ModMenuTypes;
 import org.iansaididontcare.etymonica.screen.custom.EnchantingTableScreen;
-import org.iansaididontcare.etymonica.screen.custom.PedestalScreen;
 
 // This class will not load on dedicated servers. Accessing client side code from here is safe.
 @Mod(value = Etymonica.MOD_ID, dist = Dist.CLIENT)
@@ -46,14 +45,14 @@ public class EtymonicaClient {
 
     @SubscribeEvent
     public static void registerBER(EntityRenderersEvent.RegisterRenderers event) {
-        event.registerBlockEntityRenderer(ModBlockEntities.PEDESTAL_BE.get(), PedestalBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.PEDESTAL_BE.get(), InfusionAltarBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.ENCHANTING_TABLE_TIER0_BE.get(), EnchantingTableBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.ENCHANTING_TABLE_TIER1_BE.get(), EnchantingTableBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.INFUSION_ALTAR_TIER0_BE.get(), InfusionAltarBlockEntityRenderer::new);
     }
 
     @SubscribeEvent
     public static void registerScreens(RegisterMenuScreensEvent event) {
-        event.register(ModMenuTypes.PEDESTAL_MENU.get(), PedestalScreen::new);
         event.register(ModMenuTypes.ENCHANTING_TABLE_MENU.get(), EnchantingTableScreen::new);
     }
 }

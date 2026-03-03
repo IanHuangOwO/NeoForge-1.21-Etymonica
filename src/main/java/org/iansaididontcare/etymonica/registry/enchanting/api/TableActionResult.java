@@ -1,0 +1,17 @@
+package org.iansaididontcare.etymonica.registry.enchanting.api;
+
+public enum TableActionResult {
+    ENCHANT_STARTED,
+    ENCHANT_BLOCKED,
+    RELINK_STARTED,
+    RELINK_CANCELLED,
+    RELINK_BLOCKED,
+    MODIFIER_LINKED,
+    MODIFIER_UNLINKED,
+    LINK_BLOCKED_NO_CAP,
+    LINK_BLOCKED_CAP_REACHED,
+    LINK_BLOCKED_NO_RADIUS,
+    LINK_BLOCKED_TOO_FAR,
+    LINK_BLOCKED_INVALID_BLOCK,
+    LINK_BLOCKED_ALREADY_LINKED
+}

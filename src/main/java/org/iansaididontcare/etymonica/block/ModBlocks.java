@@ -11,8 +11,9 @@ import net.neoforged.neoforge.registries.DeferredRegister;
 import org.iansaididontcare.etymonica.Etymonica;
 import org.iansaididontcare.etymonica.block.custom.enchantingtable.EnchantingTableTier0Block;
 import org.iansaididontcare.etymonica.block.custom.enchantingtable.EnchantingTableTier1Block;
-import org.iansaididontcare.etymonica.block.custom.PedestalBlock;
+import org.iansaididontcare.etymonica.block.custom.infusionaltar.PedestalBlock;
 import org.iansaididontcare.etymonica.block.custom.jar.ZombieBrainInAJarBlock;
+import org.iansaididontcare.etymonica.block.custom.infusionaltar.InfusionAltarTier0Block;
 import org.iansaididontcare.etymonica.fluid.ModFluids;
 import org.iansaididontcare.etymonica.item.ModItems;
 import org.iansaididontcare.etymonica.item.custom.BrainInAJarItem;
@@ -38,6 +39,11 @@ public class ModBlocks {
             (properties) -> new EnchantingTableTier1Block(properties
                     .strength(4.0f)
                     .sound(SoundType.WOOD)));
+
+    public static final DeferredBlock<Block> INFUSION_ALTAR_TIER0 = registerBlock("infusion_altar_tier0",
+            (properties) -> new InfusionAltarTier0Block(properties
+                    .strength(3.5f)
+                    .sound(SoundType.STONE)));
 
     public static final DeferredBlock<Block> BRAIN_IN_A_JAR = registerBlock("brain_in_a_jar",
             properties -> new ZombieBrainInAJarBlock(properties

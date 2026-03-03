@@ -1,0 +1,13 @@
+{
+  "jars": {
+    "etymonica:brain_in_a_jar": {
+      "capacity": 8000,
+      "zombie_special": {
+        "xp_to_mb": 10,
+        "xp_per_drain": 10,
+        "interval": 20,
+        "radius": 1.0
+      }
+    }
+  }
+}

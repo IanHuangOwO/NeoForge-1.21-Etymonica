@@ -1,7 +1,7 @@
 package org.iansaididontcare.etymonica.screen.custom;
 
 import org.iansaididontcare.etymonica.block.ModBlocks;
-import org.iansaididontcare.etymonica.block.entity.PedestalBlockEntity;
+import org.iansaididontcare.etymonica.block.entity.infusionaltar.PedestalBlockEntity;
 import org.iansaididontcare.etymonica.screen.ModMenuTypes;
 import net.minecraft.network.FriendlyByteBuf;
 import net.minecraft.world.entity.player.Inventory;

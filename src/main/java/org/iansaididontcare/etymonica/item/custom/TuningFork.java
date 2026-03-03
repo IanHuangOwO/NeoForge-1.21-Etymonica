@@ -18,7 +18,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.iansaididontcare.etymonica.block.entity.AbstractEnchantingTableBlockEntity;
-import org.iansaididontcare.etymonica.enchanting.EnchantingTableMessages;
+import org.iansaididontcare.etymonica.registry.enchanting.EnchantingTableMessages;
 import org.iansaididontcare.etymonica.tag.ModBlockTags;
 import org.jetbrains.annotations.Nullable;
 

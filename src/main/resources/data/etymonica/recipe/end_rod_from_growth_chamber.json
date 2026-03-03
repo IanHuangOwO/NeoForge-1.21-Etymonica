@@ -1,8 +1,0 @@
-{
-  "type": "etymonica:growth_chamber",
-  "ingredient": "minecraft:stick",
-  "result": {
-    "id": "minecraft:end_rod",
-    "count": 2
-  }
-}

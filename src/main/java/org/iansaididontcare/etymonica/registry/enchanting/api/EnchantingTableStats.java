@@ -1,4 +1,4 @@
-package org.iansaididontcare.etymonica.enchanting.api;
+package org.iansaididontcare.etymonica.registry.enchanting.api;
 
 public record EnchantingTableStats(
         int enchantingPowerCap,

@@ -31,9 +31,10 @@ import org.iansaididontcare.etymonica.block.entity.enchantingtable.enchanter.Enc
 import org.iansaididontcare.etymonica.block.entity.enchantingtable.enchanter.EnchantPowerCalculator;
 import org.iansaididontcare.etymonica.block.entity.enchantingtable.enchanter.EnchantRelinkScanner;
 import org.iansaididontcare.etymonica.block.entity.enchantingtable.enchanter.EnchantingTableDataSlots;
-import org.iansaididontcare.etymonica.enchanting.api.EnchantingTableModifierStats;
-import org.iansaididontcare.etymonica.enchanting.api.EnchantingTableStats;
-import org.iansaididontcare.etymonica.enchanting.data.EnchantingTableData;
+import org.iansaididontcare.etymonica.registry.enchanting.api.EnchantingTableModifierStats;
+import org.iansaididontcare.etymonica.registry.enchanting.api.EnchantingTableStats;
+import org.iansaididontcare.etymonica.registry.enchanting.data.EnchantingTableData;
+import org.iansaididontcare.etymonica.registry.enchanting.EnchantingTableMessages;
 import org.iansaididontcare.etymonica.screen.custom.EnchantingTableMenu;
 import org.iansaididontcare.etymonica.tag.ModBlockTags;
 import org.jetbrains.annotations.Nullable;
@@ -46,6 +47,8 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 
+import org.iansaididontcare.etymonica.registry.enchanting.api.TableActionResult;
+
 public abstract class AbstractEnchantingTableBlockEntity extends BlockEntity implements MenuProvider {
     // Core constants and machine modes.
     private static final int BASE_PROGRESS_TICKS = 640;
@@ -53,21 +56,6 @@ public abstract class AbstractEnchantingTableBlockEntity extends BlockEntity imp
         IDLE,
         RELINK,
         ENCHANT
-    }
-    public enum TableActionResult {
-        ENCHANT_STARTED,
-        ENCHANT_BLOCKED,
-        RELINK_STARTED,
-        RELINK_CANCELLED,
-        RELINK_BLOCKED,
-        MODIFIER_LINKED,
-        MODIFIER_UNLINKED,
-        LINK_BLOCKED_NO_CAP,
-        LINK_BLOCKED_CAP_REACHED,
-        LINK_BLOCKED_NO_RADIUS,
-        LINK_BLOCKED_TOO_FAR,
-        LINK_BLOCKED_INVALID_BLOCK,
-        LINK_BLOCKED_ALREADY_LINKED
     }
 
     public static final int SLOT_FUTURE = 0;

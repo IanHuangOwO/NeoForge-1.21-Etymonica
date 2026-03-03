@@ -6,17 +6,26 @@
       "max_tier_enchantment": 0,
       "max_linked_modifiers": 64,
       "speed": 0.10,
-      "stability": 0.00,
-      "efficiency": 0.00
+      "efficiency": 0.10,
+      "stability": 0.10
     },
     "tier1": {
       "enchanting_power_cap": 100,
       "link_radius": 16,
       "max_tier_enchantment": 0,
       "max_linked_modifiers": 128,
-      "speed": 0.20,
-      "stability": 0.00,
-      "efficiency": 0.05
+      "speed": 0.30,
+      "efficiency": 0.30,
+      "stability": 0.30
+    },
+    "tier2": {
+      "enchanting_power_cap": 150,
+      "link_radius": 64,
+      "max_tier_enchantment": 0,
+      "max_linked_modifiers": 512,
+      "speed": 0.50,
+      "efficiency": 0.50,
+      "stability": 0.90
     }
   }
 }

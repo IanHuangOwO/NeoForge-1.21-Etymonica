@@ -9,6 +9,8 @@ import org.iansaididontcare.etymonica.block.ModBlocks;
 import org.iansaididontcare.etymonica.block.entity.enchantingtable.EnchantingTableTier0BlockEntity;
 import org.iansaididontcare.etymonica.block.entity.enchantingtable.EnchantingTableTier1BlockEntity;
 import org.iansaididontcare.etymonica.block.entity.jar.ZombieBrainInAJarBlockEntity;
+import org.iansaididontcare.etymonica.block.entity.infusionaltar.InfusionAltarTier0BlockEntity;
+import org.iansaididontcare.etymonica.block.entity.infusionaltar.PedestalBlockEntity;
 
 import java.util.function.Supplier;
 
@@ -29,6 +31,11 @@ public class ModBlockEntities {
             BLOCK_ENTITIES.register("enchanting_table_tier1_be", () -> new BlockEntityType<>(
                     EnchantingTableTier1BlockEntity::new,
                     ModBlocks.ENCHANTING_TABLE_TIER1.get()));
+
+    public static final Supplier<BlockEntityType<InfusionAltarTier0BlockEntity>> INFUSION_ALTAR_TIER0_BE =
+            BLOCK_ENTITIES.register("infusion_altar_tier0_be", () -> new BlockEntityType<>(
+                    InfusionAltarTier0BlockEntity::new,
+                    ModBlocks.INFUSION_ALTAR_TIER0.get()));
 
     public static final Supplier<BlockEntityType<ZombieBrainInAJarBlockEntity>> BRAIN_IN_A_JAR_BE =
             BLOCK_ENTITIES.register("brain_in_a_jar_be", () -> new BlockEntityType<>(

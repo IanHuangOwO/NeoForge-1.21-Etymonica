@@ -2,6 +2,8 @@ package org.iansaididontcare.etymonica.block.custom.jar;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.RenderShape;
@@ -13,6 +15,7 @@ import org.iansaididontcare.etymonica.block.custom.AbstractJarBlock;
 import org.iansaididontcare.etymonica.block.entity.ModBlockEntities;
 import org.iansaididontcare.etymonica.block.entity.jar.ZombieBrainInAJarBlockEntity;
 import org.iansaididontcare.etymonica.item.custom.BrainInAJarItem;
+import org.iansaididontcare.etymonica.registry.jar.data.JarData;
 import org.jetbrains.annotations.Nullable;
 
 public class ZombieBrainInAJarBlock extends AbstractJarBlock {
@@ -74,7 +77,8 @@ public class ZombieBrainInAJarBlock extends AbstractJarBlock {
 
     @Override
     protected int getJarCapacityMillibuckets() {
-        return ZombieBrainInAJarBlockEntity.CAPACITY_MILLIBUCKETS;
+        Identifier id = BuiltInRegistries.BLOCK.getKey(this);
+        return JarData.getJarType(id).capacity();
     }
 
     @Override

@@ -1,4 +1,4 @@
-package org.iansaididontcare.etymonica.enchanting.data;
+package org.iansaididontcare.etymonica.registry.enchanting.data;
 
 import com.google.gson.Gson;
 import com.google.gson.JsonElement;
@@ -7,7 +7,7 @@ import net.minecraft.resources.Identifier;
 import net.minecraft.server.packs.resources.Resource;
 import net.minecraft.server.packs.resources.ResourceManager;
 import org.iansaididontcare.etymonica.Etymonica;
-import org.iansaididontcare.etymonica.enchanting.api.EnchantingTableModifierStats;
+import org.iansaididontcare.etymonica.registry.enchanting.api.EnchantingTableModifierStats;
 
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;

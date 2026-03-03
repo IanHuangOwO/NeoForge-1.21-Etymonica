@@ -34,17 +34,21 @@ public class ModModelProvider extends ModelProvider {
 
         /* BLOCKS */
         blockModels.createTrivialCube(ModBlocks.ORICHALCUM_BLOCK.get());
-        blockModels.createTrivialCube(ModBlocks.ENCHANTING_TABLE_TIER0.get());
-        blockModels.createTrivialCube(ModBlocks.ENCHANTING_TABLE_TIER1.get());
     }
 
     private static final Set<Identifier> MANUAL_MODEL_BLOCKS = Set.of(
+            ModBlocks.ENCHANTING_TABLE_TIER0.getId(),
+            ModBlocks.ENCHANTING_TABLE_TIER1.getId(),
+            ModBlocks.INFUSION_ALTAR_TIER0.getId(),
             ModBlocks.PEDESTAL.getId(),
             ModBlocks.BRAIN_IN_A_JAR.getId(),
             ModBlocks.LIQUID_EXPERIENCE_BLOCK.getId()
     );
 
     private static final Set<Identifier> MANUAL_MODEL_ITEMS = Set.of(
+            ModBlocks.ENCHANTING_TABLE_TIER0.getId(),
+            ModBlocks.ENCHANTING_TABLE_TIER1.getId(),
+            ModBlocks.INFUSION_ALTAR_TIER0.getId(),
             ModBlocks.PEDESTAL.getId(),
             ModBlocks.BRAIN_IN_A_JAR.getId(),
             ModBlocks.LIQUID_EXPERIENCE_BLOCK.getId()

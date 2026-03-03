@@ -1,12 +1,15 @@
 package org.iansaididontcare.etymonica.events;
 
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import org.iansaididontcare.etymonica.block.entity.jar.ZombieBrainInAJarBlockEntity;
 import org.iansaididontcare.etymonica.item.custom.BrainInAJarItem;
+import org.iansaididontcare.etymonica.registry.jar.data.JarData;
 
 public final class ModEvents {
     private static final int MB_PER_XP_POINT = 20;
@@ -41,8 +44,9 @@ public final class ModEvents {
                 continue;
             }
 
+            int capacity = getCapacity(stack);
             int stored = BrainInAJarItem.getStoredMillibuckets(stack);
-            int spaceMb = ZombieBrainInAJarBlockEntity.CAPACITY_MILLIBUCKETS - stored;
+            int spaceMb = capacity - stored;
             if (spaceMb <= 0) {
                 continue;
             }
@@ -61,5 +65,13 @@ public final class ModEvents {
                 return;
             }
         }
+    }
+
+    private static int getCapacity(ItemStack stack) {
+        if (!(stack.getItem() instanceof BlockItem blockItem)) {
+            return 8000;
+        }
+        Identifier id = BuiltInRegistries.BLOCK.getKey(blockItem.getBlock());
+        return JarData.getJarType(id).capacity();
     }
 }

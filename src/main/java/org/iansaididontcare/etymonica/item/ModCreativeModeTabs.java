@@ -38,6 +38,7 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.PEDESTAL);
                         output.accept(ModBlocks.ENCHANTING_TABLE_TIER0);
                         output.accept(ModBlocks.ENCHANTING_TABLE_TIER1);
+                        output.accept(ModBlocks.INFUSION_ALTAR_TIER0);
                         output.accept(ModBlocks.BRAIN_IN_A_JAR);
                     }).build());
 
