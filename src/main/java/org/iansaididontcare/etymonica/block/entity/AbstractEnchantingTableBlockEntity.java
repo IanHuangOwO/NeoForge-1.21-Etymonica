@@ -34,7 +34,6 @@ import org.iansaididontcare.etymonica.block.entity.enchantingtable.enchanter.Enc
 import org.iansaididontcare.etymonica.registry.enchanting.api.EnchantingTableModifierStats;
 import org.iansaididontcare.etymonica.registry.enchanting.api.EnchantingTableStats;
 import org.iansaididontcare.etymonica.registry.enchanting.data.EnchantingTableData;
-import org.iansaididontcare.etymonica.registry.enchanting.EnchantingTableMessages;
 import org.iansaididontcare.etymonica.screen.custom.EnchantingTableMenu;
 import org.iansaididontcare.etymonica.tag.ModBlockTags;
 import org.jetbrains.annotations.Nullable;
@@ -91,7 +90,9 @@ public abstract class AbstractEnchantingTableBlockEntity extends BlockEntity imp
     private String lastTierId = "";
 
     private final Set<BlockPos> linkedModifiers = new HashSet<>();
-    private final Map<BlockPos, LinkedContribution> contributionCache = new HashMap<>();
+    private final Set<BlockPos> linkedBookshelves = new HashSet<>();
+    
+    private final Map<BlockPos, LinkedModifierContribution> modifierContributionCache = new HashMap<>();
     private float linkedSpeedTotal = 0f;
     private float linkedStabilityTotal = 0f;
     private float linkedEfficiencyTotal = 0f;
@@ -103,10 +104,10 @@ public abstract class AbstractEnchantingTableBlockEntity extends BlockEntity imp
 
     private int scanTotalPositions = 0;   // cube total
     private int scanScannedPositions = 0; // cube scanned so far
-    private int scanLinkedCount = 0;      // linked so far
+    private int scanLinkedCount = 0;      // linked so far (modifiers + bookshelves)
     private @Nullable UUID relinkRequester = null;
 
-    private record LinkedContribution(long fingerprint, float speed, float stability, float efficiency, int power) {}
+    private record LinkedModifierContribution(long fingerprint, float speed, float stability, float efficiency) {}
 
     // Data slot bridge used by menu/screen to read synced machine state.
     private final ContainerData data = new ContainerData() {
@@ -274,7 +275,7 @@ public abstract class AbstractEnchantingTableBlockEntity extends BlockEntity imp
         if (drainBudget > 0) {
             int drained = EnchantBookDrainer.drainFromLinkedBookshelves(
                     level,
-                    linkedModifiers,
+                    linkedBookshelves,
                     ModBlockTags.ENCHANTING_TABLE_BOOKSHELVES,
                     drainBudget
             );
@@ -308,10 +309,12 @@ public abstract class AbstractEnchantingTableBlockEntity extends BlockEntity imp
         EnchantingTableStats base = EnchantingTableData.getTier(tierId);
 
         int scanRadius = base.linkRadius();
-        scanCap = base.maxLinkedModifiers();
+        // No global modifier cap anymore, just use a very large number for the scanner
+        scanCap = 9999;
         relinkSession = new EnchantRelinkScanner(scanRadius, scanCap);
 
         linkedModifiers.clear();
+        linkedBookshelves.clear();
         scanLinkedCount = 0;
         resetContributionCache();
 
@@ -362,10 +365,8 @@ public abstract class AbstractEnchantingTableBlockEntity extends BlockEntity imp
             BlockPos target = relinkSession.nextCandidate(worldPosition, scanLinkedCount);
             scanScannedPositions = relinkSession.getScannedPositions();
             if (target == null) break;
-            BlockState st = level.getBlockState(target);
-            if (!st.is(ModBlockTags.ENCHANTING_TABLE_MODIFIERS)) continue;
-
-            tryLinkedModifier(target);
+            
+            tryLinkedBlock(target);
         }
 
         scanTotalPositions = relinkSession.getTotalPositions();
@@ -398,6 +399,15 @@ public abstract class AbstractEnchantingTableBlockEntity extends BlockEntity imp
         }
     }
 
+    private void tryLinkedBlock(BlockPos target) {
+        BlockState st = level.getBlockState(target);
+        if (st.is(ModBlockTags.ENCHANTING_TABLE_BOOKSHELVES)) {
+            tryLinkedBookshelf(target);
+        } else if (st.is(ModBlockTags.ENCHANTING_TABLE_MODIFIERS)) {
+            tryLinkedModifier(target);
+        }
+    }
+
     // Stat refresh API and recompute pipeline.
     public void requestUpdateStatsNow() {
         if (level == null || level.isClientSide()) return;
@@ -425,8 +435,11 @@ public abstract class AbstractEnchantingTableBlockEntity extends BlockEntity imp
         currentStability = EnchantingTableStats.clamp01(base.stability() + linkedStabilityTotal);
         currentEfficiency = EnchantingTableStats.clamp01(base.efficiency() + linkedEfficiencyTotal);
 
+        // Power is only from bookshelves
+        linkedPowerTotal = EnchantPowerCalculator.computeTotalLinkedPower(level, linkedBookshelves);
         currentPower = Math.max(0, Math.min(linkedPowerTotal, base.enchantingPowerCap()));
-        scanCap = Math.max(0, base.maxLinkedModifiers());
+        
+        scanCap = 9999;
         maxProgress = Math.max(1, Math.round(BASE_PROGRESS_TICKS * (1.0f - currentSpeed)));
         statsDirty = false;
     }
@@ -435,40 +448,52 @@ public abstract class AbstractEnchantingTableBlockEntity extends BlockEntity imp
     private boolean reconcileLinkedContributions(Level level) {
         boolean changed = false;
 
+        // Reconcile Bookshelves
+        Iterator<BlockPos> shelfIt = linkedBookshelves.iterator();
+        while (shelfIt.hasNext()) {
+            BlockPos pos = shelfIt.next();
+            if (!level.getBlockState(pos).is(ModBlockTags.ENCHANTING_TABLE_BOOKSHELVES)) {
+                shelfIt.remove();
+                changed = true;
+            }
+        }
+
+        // Reconcile Modifiers
         Iterator<BlockPos> linkedIt = linkedModifiers.iterator();
         while (linkedIt.hasNext()) {
             BlockPos pos = linkedIt.next();
             BlockState state = level.getBlockState(pos);
             if (!state.is(ModBlockTags.ENCHANTING_TABLE_MODIFIERS)) {
                 linkedIt.remove();
-                removeContribution(pos);
+                removeModifierContribution(pos);
                 changed = true;
                 continue;
             }
 
-            long fingerprint = computeFingerprint(level, pos, state);
-            LinkedContribution previous = contributionCache.get(pos);
+            long fingerprint = computeModifierFingerprint(level, pos, state);
+            LinkedModifierContribution previous = modifierContributionCache.get(pos);
             if (previous == null || previous.fingerprint() != fingerprint) {
-                if (previous != null) subtractContribution(previous);
-                LinkedContribution next = computeContribution(level, pos, state, fingerprint);
-                contributionCache.put(pos, next);
-                addContribution(next);
+                if (previous != null) subtractModifierContribution(previous);
+                LinkedModifierContribution next = computeModifierContribution(level, pos, state, fingerprint);
+                modifierContributionCache.put(pos, next);
+                addModifierContribution(next);
                 changed = true;
             }
         }
 
-        Iterator<Map.Entry<BlockPos, LinkedContribution>> cacheIt = contributionCache.entrySet().iterator();
+        Iterator<Map.Entry<BlockPos, LinkedModifierContribution>> cacheIt = modifierContributionCache.entrySet().iterator();
         while (cacheIt.hasNext()) {
-            Map.Entry<BlockPos, LinkedContribution> entry = cacheIt.next();
+            Map.Entry<BlockPos, LinkedModifierContribution> entry = cacheIt.next();
             if (!linkedModifiers.contains(entry.getKey())) {
-                subtractContribution(entry.getValue());
+                subtractModifierContribution(entry.getValue());
                 cacheIt.remove();
                 changed = true;
             }
         }
 
-        if (scanLinkedCount != linkedModifiers.size()) {
-            scanLinkedCount = linkedModifiers.size();
+        int totalCount = linkedModifiers.size() + linkedBookshelves.size();
+        if (scanLinkedCount != totalCount) {
+            scanLinkedCount = totalCount;
             changed = true;
         }
 
@@ -476,7 +501,7 @@ public abstract class AbstractEnchantingTableBlockEntity extends BlockEntity imp
         return changed;
     }
 
-    private long computeFingerprint(Level level, BlockPos pos, BlockState state) {
+    private long computeModifierFingerprint(Level level, BlockPos pos, BlockState state) {
         long hash = 1469598103934665603L;
         hash = mix(hash, Block.getId(state));
 
@@ -509,35 +534,31 @@ public abstract class AbstractEnchantingTableBlockEntity extends BlockEntity imp
         return (current ^ (long) value) * 1099511628211L;
     }
 
-    private LinkedContribution computeContribution(Level level, BlockPos pos, BlockState state, long fingerprint) {
+    private LinkedModifierContribution computeModifierContribution(Level level, BlockPos pos, BlockState state, long fingerprint) {
         Identifier id = blockId(level, state.getBlock());
         EnchantingTableModifierStats modifier = EnchantingTableData.getModifier(id);
-        int power = EnchantPowerCalculator.computeBookshelfPowerForBlock(level, pos);
-        return new LinkedContribution(fingerprint, modifier.speed(), modifier.stability(), modifier.efficiency(), power);
+        return new LinkedModifierContribution(fingerprint, modifier.speed(), modifier.stability(), modifier.efficiency());
     }
 
-    private void addContribution(LinkedContribution c) {
+    private void addModifierContribution(LinkedModifierContribution c) {
         linkedSpeedTotal += c.speed();
         linkedStabilityTotal += c.stability();
         linkedEfficiencyTotal += c.efficiency();
-        linkedPowerTotal += c.power();
     }
 
-    private void subtractContribution(LinkedContribution c) {
+    private void subtractModifierContribution(LinkedModifierContribution c) {
         linkedSpeedTotal -= c.speed();
         linkedStabilityTotal -= c.stability();
         linkedEfficiencyTotal -= c.efficiency();
-        linkedPowerTotal -= c.power();
-        if (linkedPowerTotal < 0) linkedPowerTotal = 0;
     }
 
-    private void removeContribution(BlockPos pos) {
-        LinkedContribution old = contributionCache.remove(pos);
-        if (old != null) subtractContribution(old);
+    private void removeModifierContribution(BlockPos pos) {
+        LinkedModifierContribution old = modifierContributionCache.remove(pos);
+        if (old != null) subtractModifierContribution(old);
     }
 
     private void resetContributionCache() {
-        contributionCache.clear();
+        modifierContributionCache.clear();
         linkedSpeedTotal = 0f;
         linkedStabilityTotal = 0f;
         linkedEfficiencyTotal = 0f;
@@ -555,38 +576,34 @@ public abstract class AbstractEnchantingTableBlockEntity extends BlockEntity imp
         return EnchantingTableData.getTier(tierId);
     }
 
-    public TableActionResult tryLinkModifier(ServerLevel level, BlockPos modifierPos) {
-        EnchantingTableStats stats = getCurrentTierStats(level);
-
-        int cap = stats.maxLinkedModifiers();
-        if (cap <= 0) {
-            return TableActionResult.LINK_BLOCKED_NO_CAP;
+    public TableActionResult tryLinkBlock(ServerLevel level, BlockPos targetPos) {
+        BlockState st = level.getBlockState(targetPos);
+        if (st.is(ModBlockTags.ENCHANTING_TABLE_BOOKSHELVES)) {
+            return tryLinkBookshelf(level, targetPos);
+        } else if (st.is(ModBlockTags.ENCHANTING_TABLE_MODIFIERS)) {
+            return tryLinkModifier(level, targetPos);
         }
-        if (linkedModifiers.size() >= cap) {
+        return TableActionResult.LINK_BLOCKED_INVALID_BLOCK;
+    }
+
+    private TableActionResult tryLinkBookshelf(ServerLevel level, BlockPos shelfPos) {
+        EnchantingTableStats stats = getCurrentTierStats(level);
+        if (linkedBookshelves.size() >= stats.maxLinkedBookshelves() && !linkedBookshelves.contains(shelfPos)) {
             return TableActionResult.LINK_BLOCKED_CAP_REACHED;
         }
-
+        
         int radius = stats.linkRadius();
-        if (radius <= 0) {
-            return TableActionResult.LINK_BLOCKED_NO_RADIUS;
-        }
-
-        int maxDistSq = radius * radius;
-        if (modifierPos.distSqr(worldPosition) > maxDistSq) {
+        if (shelfPos.distSqr(worldPosition) > radius * radius) {
             return TableActionResult.LINK_BLOCKED_TOO_FAR;
         }
 
-        BlockState st = level.getBlockState(modifierPos);
-        if (!st.is(ModBlockTags.ENCHANTING_TABLE_MODIFIERS)) {
-            return TableActionResult.LINK_BLOCKED_INVALID_BLOCK;
-        }
-
-        if (tryLinkedModifier(modifierPos)) {
+        if (tryLinkedBookshelf(shelfPos)) {
             requestUpdateStatsNow();
             return TableActionResult.MODIFIER_LINKED;
         }
 
-        if (tryUnlinkModifier(modifierPos)) {
+        if (linkedBookshelves.remove(shelfPos)) {
+            scanLinkedCount = linkedModifiers.size() + linkedBookshelves.size();
             requestUpdateStatsNow();
             return TableActionResult.MODIFIER_UNLINKED;
         }
@@ -594,22 +611,79 @@ public abstract class AbstractEnchantingTableBlockEntity extends BlockEntity imp
         return TableActionResult.LINK_BLOCKED_ALREADY_LINKED;
     }
 
-    private boolean tryLinkedModifier(BlockPos modifierPos) {
-        boolean added = linkedModifiers.add(modifierPos.immutable());
+    private TableActionResult tryLinkModifier(ServerLevel level, BlockPos modifierPos) {
+        EnchantingTableStats stats = getCurrentTierStats(level);
+
+        int radius = stats.linkRadius();
+        if (modifierPos.distSqr(worldPosition) > radius * radius) {
+            return TableActionResult.LINK_BLOCKED_TOO_FAR;
+        }
+
+        if (tryLinkedModifier(modifierPos)) {
+            requestUpdateStatsNow();
+            return TableActionResult.MODIFIER_LINKED;
+        }
+
+        if (linkedModifiers.remove(modifierPos)) {
+            removeModifierContribution(modifierPos);
+            scanLinkedCount = linkedModifiers.size() + linkedBookshelves.size();
+            requestUpdateStatsNow();
+            return TableActionResult.MODIFIER_UNLINKED;
+        }
+
+        return TableActionResult.LINK_BLOCKED_ALREADY_LINKED;
+    }
+
+    private boolean tryLinkedBookshelf(BlockPos shelfPos) {
+        if (level == null) return false;
+        if (linkedBookshelves.contains(shelfPos)) return false;
+
+        String tierId = getTierIdFromState(level, getBlockState());
+        EnchantingTableStats tierStats = EnchantingTableData.getTier(tierId);
+        if (linkedBookshelves.size() >= tierStats.maxLinkedBookshelves()) {
+            return false;
+        }
+
+        boolean added = linkedBookshelves.add(shelfPos.immutable());
         if (added) {
-            scanLinkedCount = linkedModifiers.size();
+            scanLinkedCount = linkedModifiers.size() + linkedBookshelves.size();
             markStatsDirty();
         }
         return added;
     }
 
-    private boolean tryUnlinkModifier(BlockPos modifierPos) {
-        boolean removed = linkedModifiers.remove(modifierPos);
-        if (removed) {
-            scanLinkedCount = linkedModifiers.size();
+    private boolean tryLinkedModifier(BlockPos modifierPos) {
+        if (level == null) return false;
+        if (linkedModifiers.contains(modifierPos)) return false;
+
+        BlockState state = level.getBlockState(modifierPos);
+        Identifier id = net.minecraft.core.registries.BuiltInRegistries.BLOCK.getKey(state.getBlock());
+        EnchantingTableModifierStats modifierStats = EnchantingTableData.getModifier(id);
+
+        if (modifierStats.maxNum() > 0) {
+            int currentCount = countModifiersOfType(state.getBlock());
+            if (currentCount >= modifierStats.maxNum()) {
+                return false;
+            }
+        }
+
+        boolean added = linkedModifiers.add(modifierPos.immutable());
+        if (added) {
+            scanLinkedCount = linkedModifiers.size() + linkedBookshelves.size();
             markStatsDirty();
         }
-        return removed;
+        return added;
+    }
+
+    private int countModifiersOfType(Block block) {
+        if (level == null) return 0;
+        int count = 0;
+        for (BlockPos pos : linkedModifiers) {
+            if (level.getBlockState(pos).is(block)) {
+                count++;
+            }
+        }
+        return count;
     }
 
     // Small registry and tier resolution helpers.
@@ -649,13 +723,18 @@ public abstract class AbstractEnchantingTableBlockEntity extends BlockEntity imp
 
         itemHandler.serialize(output);
 
-        long[] linked = linkedModifiers.stream().mapToLong(BlockPos::asLong).toArray();
-        CompoundTag linkedTag = new CompoundTag();
-        linkedTag.putLongArray("positions", linked);
-        output.store("enchanting_table.linked_modifiers", CompoundTag.CODEC, linkedTag);
+        long[] linkedMod = linkedModifiers.stream().mapToLong(BlockPos::asLong).toArray();
+        CompoundTag linkedModTag = new CompoundTag();
+        linkedModTag.putLongArray("positions", linkedMod);
+        output.store("enchanting_table.linked_modifiers", CompoundTag.CODEC, linkedModTag);
+
+        long[] linkedShelf = linkedBookshelves.stream().mapToLong(BlockPos::asLong).toArray();
+        CompoundTag linkedShelfTag = new CompoundTag();
+        linkedShelfTag.putLongArray("positions", linkedShelf);
+        output.store("enchanting_table.linked_bookshelves", CompoundTag.CODEC, linkedShelfTag);
 
         // Sync-friendly counters (small + cheap)
-        output.putInt("enchanting_table.linked_count", linkedModifiers.size());
+        output.putInt("enchanting_table.linked_count", linkedModifiers.size() + linkedBookshelves.size());
         output.putBoolean("enchanting_table.relinking", mode == Mode.RELINK);
         output.putInt("enchanting_table.scan_total", scanTotalPositions);
         output.putInt("enchanting_table.scan_done", scanScannedPositions);
@@ -674,19 +753,24 @@ public abstract class AbstractEnchantingTableBlockEntity extends BlockEntity imp
         itemHandler.deserialize(input);
 
         linkedModifiers.clear();
-        CompoundTag linkedTag = input.read("enchanting_table.linked_modifiers", CompoundTag.CODEC)
-                .orElseGet(CompoundTag::new);
-        long[] linked = linkedTag.getLongArray("positions").orElseGet(() -> new long[0]);
-        for (long l : linked) {
-            linkedModifiers.add(BlockPos.of(l));
-        }
+        input.read("enchanting_table.linked_modifiers", CompoundTag.CODEC).ifPresent(tag -> {
+            long[] linked = tag.getLongArray("positions").orElse(new long[0]);
+            for (long l : linked) linkedModifiers.add(BlockPos.of(l));
+        });
+
+        linkedBookshelves.clear();
+        input.read("enchanting_table.linked_bookshelves", CompoundTag.CODEC).ifPresent(tag -> {
+            long[] linked = tag.getLongArray("positions").orElse(new long[0]);
+            for (long l : linked) linkedBookshelves.add(BlockPos.of(l));
+        });
+        
         resetContributionCache();
 
         // These are used for client display (tooltip/screen). Server will reset relink state below.
         boolean relink = input.getBooleanOr("enchanting_table.relinking", false);
         scanTotalPositions = input.getIntOr("enchanting_table.scan_total", 0);
         scanScannedPositions = input.getIntOr("enchanting_table.scan_done", 0);
-        scanLinkedCount = input.getIntOr("enchanting_table.scan_linked", linkedModifiers.size());
+        scanLinkedCount = input.getIntOr("enchanting_table.scan_linked", linkedModifiers.size() + linkedBookshelves.size());
         scanCap = input.getIntOr("enchanting_table.scan_cap", 0);
 
         progress = input.getIntOr("enchanting_table.progress", 0);
@@ -701,7 +785,7 @@ public abstract class AbstractEnchantingTableBlockEntity extends BlockEntity imp
             relinkRequester = null;
             scanTotalPositions = 0;
             scanScannedPositions = 0;
-            scanLinkedCount = linkedModifiers.size();
+            scanLinkedCount = linkedModifiers.size() + linkedBookshelves.size();
             resetContributionCache();
         }
     }

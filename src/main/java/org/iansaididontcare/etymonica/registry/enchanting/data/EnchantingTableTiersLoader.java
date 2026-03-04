@@ -52,14 +52,14 @@ public final class EnchantingTableTiersLoader {
                 int powerCap = getInt(t, "enchanting_power_cap", 0);
                 int linkRadius = getInt(t, "link_radius", 0);
                 int maxTierEnchant = getInt(t, "max_tier_enchantment", 0);
-                int maxLinkedModifiers = getInt(t, "max_linked_modifiers", 128);
+                int maxLinkedBookshelves = getInt(t, "max_linked_bookshelves", 64);
 
                 float speed = getFloat(t, "speed", 0f);
                 float stability = getFloat(t, "stability", 0f);
                 float efficiency = getFloat(t, "efficiency", 0f);
 
                 parsed.put(tierId, new EnchantingTableStats(
-                        powerCap, linkRadius, maxTierEnchant, maxLinkedModifiers,
+                        powerCap, linkRadius, maxTierEnchant, maxLinkedBookshelves,
                         speed, stability, efficiency
                 ));
             }

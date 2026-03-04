@@ -9,6 +9,8 @@ import net.neoforged.neoforge.event.AddServerReloadListenersEvent;
 import org.iansaididontcare.etymonica.Etymonica;
 import org.iansaididontcare.etymonica.registry.enchantment.data.EnchantmentRaritiesLoader;
 import org.iansaididontcare.etymonica.registry.enchantment.data.EnchantmentWeightsLoader;
+import org.iansaididontcare.etymonica.registry.infusion.data.InfusionAltarModifierLoader;
+import org.iansaididontcare.etymonica.registry.infusion.data.InfusionAltarTierLoader;
 
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.Executor;
@@ -32,6 +34,8 @@ public final class EnchantmentReloadListeners {
                         .supplyAsync(() -> {
                             EnchantmentRaritiesLoader.load(state.resourceManager());
                             EnchantmentWeightsLoader.load(state.resourceManager());
+                            InfusionAltarTierLoader.load(state.resourceManager());
+                            InfusionAltarModifierLoader.load(state.resourceManager());
                             return Unit.INSTANCE;
                         }, backgroundExecutor)
                         .thenCompose(barrier::wait)

@@ -42,6 +42,15 @@ public abstract class AbstractInfusionAltarBlock extends BaseEntityBlock {
             ItemStack inSlot = altar.inventory.getStackInSlot(0);
 
             if (!stack.isEmpty()) {
+                if (stack.is(org.iansaididontcare.etymonica.tag.ModItemTags.QUILLS)) {
+                    // Right-click with Quill -> Start infusion
+                    if (!level.isClientSide()) {
+                        var result = altar.attemptStartInfusion(player);
+                        player.displayClientMessage(org.iansaididontcare.etymonica.registry.infusion.InfusionAltarMessages.action(result), true);
+                    }
+                    return InteractionResult.SUCCESS;
+                }
+
                 // Try to insert (Always 1)
                 if (!level.isClientSide()) {
                     ItemStack toInsert = stack.copyWithCount(1);
@@ -53,17 +62,19 @@ public abstract class AbstractInfusionAltarBlock extends BaseEntityBlock {
                     }
                 }
                 return InteractionResult.SUCCESS;
-            } else if (hand == InteractionHand.MAIN_HAND && !inSlot.isEmpty()) {
-                // Try to extract (empty hand)
-                if (!level.isClientSide()) {
-                    int amountToExtract = player.isCrouching() ? inSlot.getCount() : 1;
-                    ItemStack extracted = altar.inventory.extractItem(0, amountToExtract, false);
-                    if (!extracted.isEmpty()) {
-                        player.setItemInHand(hand, extracted);
-                        level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 1f, 1f);
+            } else if (hand == InteractionHand.MAIN_HAND) {
+                if (!inSlot.isEmpty()) {
+                    // Try to extract (empty hand)
+                    if (!level.isClientSide()) {
+                        int amountToExtract = player.isCrouching() ? inSlot.getCount() : 1;
+                        ItemStack extracted = altar.inventory.extractItem(0, amountToExtract, false);
+                        if (!extracted.isEmpty()) {
+                            player.setItemInHand(hand, extracted);
+                            level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 1f, 1f);
+                        }
                     }
+                    return InteractionResult.SUCCESS;
                 }
-                return InteractionResult.SUCCESS;
             }
         }
 

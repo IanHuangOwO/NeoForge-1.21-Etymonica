@@ -1,7 +1,7 @@
 {
   "replace": false,
   "values": [
-    "minecraft:chiseled_bookshelf",
-    "etymonica:orichalcum_block"
+    "etymonica:orichalcum_block",
+    "etymonica:brain_in_a_jar"
   ]
 }

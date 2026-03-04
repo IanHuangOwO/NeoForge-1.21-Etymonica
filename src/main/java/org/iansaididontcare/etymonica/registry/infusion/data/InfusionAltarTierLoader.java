@@ -52,6 +52,8 @@ public final class InfusionAltarTierLoader {
                 int itemsPerInfusion = getInt(t, "items_per_infusion", 1);
                 double speed = getDouble(t, "speed", 0.1);
                 double efficiency = getDouble(t, "efficiency", 0.0);
+                int linkRadius = getInt(t, "link_radius", 4);
+                int maxLinkedPedestals = getInt(t, "max_linked_pedestals", 16);
 
                 EnchantmentTierWeights weights = EnchantmentTierWeights.DEFAULT;
                 if (t.has("enchantment_weights") && t.get("enchantment_weights").isJsonObject()) {
@@ -66,7 +68,7 @@ public final class InfusionAltarTierLoader {
                     );
                 }
 
-                parsed.put(tierId, new InfusionAltarStats(itemsPerInfusion, speed, efficiency, weights));
+                parsed.put(tierId, new InfusionAltarStats(itemsPerInfusion, speed, efficiency, linkRadius, maxLinkedPedestals, weights));
             }
 
             InfusionAltarData.setAltarTiers(parsed);

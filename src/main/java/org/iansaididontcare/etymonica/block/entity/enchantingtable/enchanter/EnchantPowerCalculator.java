@@ -21,10 +21,10 @@ import java.util.Set;
 public final class EnchantPowerCalculator {
     private EnchantPowerCalculator() {}
 
-    public static int computeBookshelfPower(Level level, Set<BlockPos> linkedModifiers) {
-        if (linkedModifiers.isEmpty()) return 0;
+    public static int computeTotalLinkedPower(Level level, Set<BlockPos> linkedBookshelves) {
+        if (linkedBookshelves.isEmpty()) return 0;
         int total = 0;
-        for (BlockPos pos : linkedModifiers) {
+        for (BlockPos pos : linkedBookshelves) {
             total += computeBookshelfPowerForBlock(level, pos);
         }
         return Math.max(0, total);

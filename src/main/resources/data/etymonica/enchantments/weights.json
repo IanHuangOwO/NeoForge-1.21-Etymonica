@@ -2,7 +2,7 @@
   "rarity_defaults": {
     "common": {
       "power": 2,
-      "drain": 1.0
+      "drain": 1
     },
     "uncommon": {
       "power": 4,

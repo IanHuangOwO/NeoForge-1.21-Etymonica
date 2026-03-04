@@ -4,7 +4,7 @@ public record EnchantingTableStats(
         int enchantingPowerCap,
         int linkRadius,
         int maxTierEnchantment,
-        int maxLinkedModifiers,
+        int maxLinkedBookshelves,
         float speed,
         float stability,
         float efficiency
@@ -14,8 +14,7 @@ public record EnchantingTableStats(
         linkRadius = Math.max(0, linkRadius);
         maxTierEnchantment = Math.max(0, maxTierEnchantment);
 
-        // 0 means "no linking allowed"; you can choose a different default if you prefer
-        maxLinkedModifiers = Math.max(0, maxLinkedModifiers);
+        maxLinkedBookshelves = Math.max(0, maxLinkedBookshelves);
 
         speed = clamp01(speed);
         stability = clamp01(stability);

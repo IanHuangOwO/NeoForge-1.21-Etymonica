@@ -17,16 +17,21 @@ import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
+import net.minecraft.world.level.block.state.BlockState;
 import org.iansaididontcare.etymonica.block.entity.AbstractEnchantingTableBlockEntity;
+import org.iansaididontcare.etymonica.block.entity.AbstractInfusionAltarBlockEntity;
 import org.iansaididontcare.etymonica.registry.enchanting.EnchantingTableMessages;
+import org.iansaididontcare.etymonica.registry.infusion.InfusionAltarMessages;
 import org.iansaididontcare.etymonica.tag.ModBlockTags;
 import org.jetbrains.annotations.Nullable;
 
+import java.util.Optional;
 import java.util.function.Consumer;
 
 public class TuningFork extends Item {
     private static final String KEY_DIM = "BoundDim";
     private static final String KEY_POS = "BoundPos";
+    private static final String KEY_NAME = "BoundName";
 
     public TuningFork(Properties properties) {
         super(properties);
@@ -34,8 +39,7 @@ public class TuningFork extends Item {
 
     @Override
     public boolean isFoil(ItemStack stack) {
-        CompoundTag tag = getForkTag(stack);
-        return tag != null && tag.contains(KEY_POS);
+        return getBound(stack) != null;
     }
 
     @Override
@@ -60,10 +64,11 @@ public class TuningFork extends Item {
         }
 
         BlockPos p = bound.pos();
+        String nameStr = bound.name() != null ? " (" + bound.name() + ")" : "";
         tooltipAdder.accept(Component.translatable("tooltip.etymonica.tuning_fork.bound", p.getX(), p.getY(), p.getZ())
+                .append(nameStr)
                 .withStyle(ChatFormatting.GRAY));
 
-        // Client-only: read bound table status for relink progress
         try {
             Player player = Minecraft.getInstance().player;
             if (player == null) return;
@@ -77,15 +82,11 @@ public class TuningFork extends Item {
             }
 
             BlockEntity be = level.getBlockEntity(bound.pos());
-            if (!(be instanceof AbstractEnchantingTableBlockEntity table)) {
+            if (be == null) {
                 tooltipAdder.accept(Component.translatable("tooltip.etymonica.tuning_fork.table_not_loaded")
                         .withStyle(ChatFormatting.DARK_GRAY));
-                return;
             }
-
-        } catch (NoClassDefFoundError ignored) {
-            // Dedicated server safety: client classes are not present there.
-        }
+        } catch (NoClassDefFoundError ignored) {}
     }
 
     @Override
@@ -94,40 +95,39 @@ public class TuningFork extends Item {
         Player player = ctx.getPlayer();
         ItemStack stack = ctx.getItemInHand();
         BlockPos clickedPos = ctx.getClickedPos();
+        BlockState clickedState = level.getBlockState(clickedPos);
 
-        // Client: let server do the logic, but "consume" the click to feel responsive
         if (level.isClientSide()) return InteractionResult.SUCCESS;
 
-        // Shift + right-click enchanting table => bind AND start/cancel relink scan
-        if (player != null && player.isCrouching() && level.getBlockState(clickedPos).is(ModBlockTags.ENCHANTING_TABLES)) {
+        boolean isMachine = clickedState.is(ModBlockTags.ENCHANTING_TABLES) || clickedState.is(ModBlockTags.INFUSION_ALTARS);
+
+        if (player != null && player.isCrouching() && isMachine) {
             Bound bound = getBound(stack);
-
             String hereDim = level.dimension().toString();
-            boolean alreadyBoundToThisTable =
-                    bound != null
-                            && bound.dimId().equals(hereDim)
-                            && bound.pos().equals(clickedPos);
+            boolean alreadyBoundToThisMachine = bound != null && bound.dimId().equals(hereDim) && bound.pos().equals(clickedPos);
 
-            if (!alreadyBoundToThisTable) {
+            if (!alreadyBoundToThisMachine) {
                 bind(stack, level, clickedPos);
-                player.displayClientMessage(Component.translatable("message.etymonica.tuning_fork.bound", clickedPos.toShortString()), true);
+                String blockName = clickedState.getBlock().getName().getString();
+                player.displayClientMessage(Component.translatable("message.etymonica.tuning_fork.bound_with_name", clickedPos.toShortString(), blockName), true);
                 return InteractionResult.SUCCESS;
             }
 
-            // Already bound to this table -> toggle relink (start or cancel)
             BlockEntity be = level.getBlockEntity(clickedPos);
             if (be instanceof AbstractEnchantingTableBlockEntity table) {
                 player.displayClientMessage(EnchantingTableMessages.action(table.beginOrCancelRelinkScan(player)), true);
-            } else {
-                player.displayClientMessage(Component.translatable("message.etymonica.tuning_fork.table_missing"), true);
+            } else if (be instanceof AbstractInfusionAltarBlockEntity altar) {
+                player.displayClientMessage(InfusionAltarMessages.action(altar.beginOrCancelRelinkScan(player)), true);
             }
             return InteractionResult.SUCCESS;
         }
 
-        // Right-click modifier block => manually add to bound table (if bound)
-        if (!level.getBlockState(clickedPos).is(ModBlockTags.ENCHANTING_TABLE_MODIFIERS)) {
-            return InteractionResult.PASS;
-        }
+        boolean isSupport = clickedState.is(ModBlockTags.ENCHANTING_TABLE_MODIFIERS) 
+                || clickedState.is(ModBlockTags.ENCHANTING_TABLE_BOOKSHELVES)
+                || clickedState.is(ModBlockTags.INFUSION_ALTAR_MODIFIERS)
+                || clickedState.is(ModBlockTags.INFUSION_ALTAR_PEDESTALS);
+
+        if (!isSupport) return InteractionResult.PASS;
 
         Bound bound = getBound(stack);
         if (bound == null) {
@@ -135,40 +135,36 @@ public class TuningFork extends Item {
             return InteractionResult.SUCCESS;
         }
 
-        // dimension check (stored as string)
-        String hereDim = level.dimension().toString();
-        if (!bound.dimId().equals(hereDim)) {
+        if (!bound.dimId().equals(level.dimension().toString())) {
             if (player != null) player.displayClientMessage(Component.translatable("message.etymonica.tuning_fork.wrong_dimension"), true);
             return InteractionResult.SUCCESS;
         }
 
-        BlockEntity be = level.getBlockEntity(bound.pos());
-        if (!(be instanceof AbstractEnchantingTableBlockEntity table)) {
+        BlockEntity targetBe = level.getBlockEntity(bound.pos());
+        if (targetBe instanceof AbstractEnchantingTableBlockEntity table) {
+            if (player != null) {
+                player.displayClientMessage(EnchantingTableMessages.action(table.tryLinkBlock((net.minecraft.server.level.ServerLevel) level, clickedPos)), true);
+            }
+        } else if (targetBe instanceof AbstractInfusionAltarBlockEntity altar) {
+            if (player != null) {
+                player.displayClientMessage(InfusionAltarMessages.action(altar.tryManualLink((net.minecraft.server.level.ServerLevel) level, clickedPos)), true);
+            }
+        } else {
             if (player != null) player.displayClientMessage(Component.translatable("message.etymonica.tuning_fork.bound_missing"), true);
             clearBind(stack);
-            return InteractionResult.SUCCESS;
         }
 
-        if (player != null) {
-            player.displayClientMessage(
-                    EnchantingTableMessages.action(table.tryLinkModifier((net.minecraft.server.level.ServerLevel) level, clickedPos)),
-                    true
-            );
-        }
         return InteractionResult.SUCCESS;
     }
 
     @Override
     public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
-
-        // Shift + right-click air => clear bind
         if (!level.isClientSide() && player.isCrouching()) {
             clearBind(stack);
             player.displayClientMessage(Component.translatable("message.etymonica.tuning_fork.unbound"), true);
             return InteractionResult.SUCCESS;
         }
-
         return InteractionResult.PASS;
     }
 
@@ -176,16 +172,16 @@ public class TuningFork extends Item {
         CompoundTag tag = getOrCreateForkTag(stack);
         tag.putString(KEY_DIM, level.dimension().toString());
         tag.putLong(KEY_POS, pos.asLong());
+        tag.putString(KEY_NAME, level.getBlockState(pos).getBlock().getName().getString());
         setForkTag(stack, tag);
     }
 
     private static void clearBind(ItemStack stack) {
         CompoundTag tag = getForkTag(stack);
         if (tag == null) return;
-
         tag.remove(KEY_DIM);
         tag.remove(KEY_POS);
-
+        tag.remove(KEY_NAME);
         if (tag.isEmpty()) {
             stack.remove(DataComponents.CUSTOM_DATA);
         } else {
@@ -196,32 +192,30 @@ public class TuningFork extends Item {
     private static @Nullable Bound getBound(ItemStack stack) {
         CompoundTag tag = getForkTag(stack);
         if (tag == null) return null;
-
-        var dimOpt = tag.getString(KEY_DIM);
-        var posOpt = tag.getLong(KEY_POS);
-
-        if (dimOpt.isEmpty() || posOpt.isEmpty()) return null;
-
-        String dimStr = dimOpt.get();
-        BlockPos pos = BlockPos.of(posOpt.get());
-
-        return new Bound(dimStr, pos);
+        
+        Optional<String> dimOpt = (Optional<String>) (Object) tag.getString(KEY_DIM);
+        Optional<Long> posOpt = (Optional<Long>) (Object) tag.getLong(KEY_POS);
+        Optional<String> nameOpt = (Optional<String>) (Object) tag.getString(KEY_NAME);
+        
+        if (dimOpt.isPresent() && posOpt.isPresent()) {
+            return new Bound(dimOpt.get(), BlockPos.of(posOpt.get()), nameOpt.orElse(null));
+        }
+        return null;
     }
 
     private static @Nullable CompoundTag getForkTag(ItemStack stack) {
         CustomData data = stack.get(DataComponents.CUSTOM_DATA);
-        if (data == null) return null;
-        return data.copyTag();
+        return data != null ? data.copyTag() : null;
     }
 
     private static CompoundTag getOrCreateForkTag(ItemStack stack) {
-        CompoundTag existing = getForkTag(stack);
-        return existing != null ? existing : new CompoundTag();
+        CompoundTag tag = getForkTag(stack);
+        return tag != null ? tag : new CompoundTag();
     }
 
     private static void setForkTag(ItemStack stack, CompoundTag tag) {
         stack.set(DataComponents.CUSTOM_DATA, CustomData.of(tag));
     }
 
-    private record Bound(String dimId, BlockPos pos) {}
+    private record Bound(String dimId, BlockPos pos, @Nullable String name) {}
 }

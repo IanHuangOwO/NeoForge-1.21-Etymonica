@@ -17,4 +17,13 @@ public final class ModBlockTags {
 
     public static final TagKey<Block> ENCHANTING_TABLE_BOOKSHELVES =
             TagKey.create(Registries.BLOCK, Identifier.parse(Etymonica.MOD_ID + ":enchanting_table_bookshelves"));
+
+    public static final TagKey<Block> INFUSION_ALTARS =
+            TagKey.create(Registries.BLOCK, Identifier.parse(Etymonica.MOD_ID + ":infusion_altars"));
+
+    public static final TagKey<Block> INFUSION_ALTAR_MODIFIERS =
+            TagKey.create(Registries.BLOCK, Identifier.parse(Etymonica.MOD_ID + ":infusion_altar_modifiers"));
+
+    public static final TagKey<Block> INFUSION_ALTAR_PEDESTALS =
+            TagKey.create(Registries.BLOCK, Identifier.parse(Etymonica.MOD_ID + ":infusion_altar_pedestals"));
 }
