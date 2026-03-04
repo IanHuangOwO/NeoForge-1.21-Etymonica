@@ -12,7 +12,7 @@ import net.minecraft.world.item.Items;
 import net.minecraft.world.item.enchantment.Enchantment;
 import net.minecraft.world.item.enchantment.ItemEnchantments;
 import net.minecraft.world.level.Level;
-import org.iansaididontcare.etymonica.registry.enchanting.data.EnchantingTableData;
+import org.iansaididontcare.etymonica.registry.enchantment.data.EnchantmentData;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -63,7 +63,7 @@ public final class EnchantPowerCalculator {
             } catch (Exception ignored) {
                 enchantmentId = Identifier.parse("minecraft:air");
             }
-            double weight = EnchantingTableData.getAccumulationWeight(enchantmentId);
+            double weight = EnchantmentData.getPower(enchantmentId);
             power += (int) Math.round(levelSum * Math.max(0.0d, weight));
         }
 

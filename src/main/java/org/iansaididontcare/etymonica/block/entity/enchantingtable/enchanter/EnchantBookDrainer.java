@@ -16,7 +16,7 @@ import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import net.minecraft.world.level.block.state.BlockState;
-import org.iansaididontcare.etymonica.registry.enchanting.data.EnchantingTableData;
+import org.iansaididontcare.etymonica.registry.enchantment.data.EnchantmentData;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,7 +34,7 @@ public final class EnchantBookDrainer {
             int levelValue = Math.max(0, entry.getIntValue());
             if (levelValue <= 0) continue;
             Identifier enchantmentId = getEnchantmentId(level, entry.getKey());
-            double weight = EnchantingTableData.getDrainWeight(enchantmentId);
+            double weight = EnchantmentData.getDrainWeight(enchantmentId);
             sum += levelValue * Math.max(0.0d, weight);
         }
         return Math.max(0, (int) Math.round(sum));
@@ -105,7 +105,7 @@ public final class EnchantBookDrainer {
         Object2IntMap.Entry<net.minecraft.core.Holder<Enchantment>> picked =
                 entries.get(level.random.nextInt(entries.size()));
         var pickedEnchantment = picked.getKey();
-        double consumed = Math.max(0.0d, EnchantingTableData.getAccumulationWeight(getEnchantmentId(level, pickedEnchantment)));
+        double consumed = Math.max(0.0d, EnchantmentData.getPower(getEnchantmentId(level, pickedEnchantment)));
 
         ItemEnchantments.Mutable mutable = new ItemEnchantments.Mutable(ItemEnchantments.EMPTY);
         for (Object2IntMap.Entry<net.minecraft.core.Holder<Enchantment>> entry : entries) {

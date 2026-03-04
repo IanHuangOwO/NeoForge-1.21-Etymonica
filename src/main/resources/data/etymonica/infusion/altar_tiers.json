@@ -1,0 +1,18 @@
+{
+  "altar_tiers": {
+    "tier0": {
+      "items_per_infusion": 1,
+      "speed": 0.1,
+      "efficiency": 0.0,
+      "enchantment_weights": {
+        "common": 0.6,
+        "uncommon": 0.3,
+        "rare": 0.1,
+        "epic": 0.0,
+        "legendary": 0.0,
+        "mystic": 0.0
+      }
+    }
+  }
+}
+t

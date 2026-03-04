@@ -1,0 +1,8 @@
+{
+  "minecraft:sharpness": "common",
+  "minecraft:protection": "common",
+  "minecraft:unbreaking": "uncommon",
+  "minecraft:mending": "rare",
+  "minecraft:binding_curse": "rare",
+  "minecraft:vanishing_curse": "rare"
+}
