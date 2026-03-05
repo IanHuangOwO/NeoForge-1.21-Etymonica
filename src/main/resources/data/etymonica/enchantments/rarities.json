@@ -29,7 +29,7 @@
   "minecraft:power": "common",
   "minecraft:punch": "uncommon",
   "minecraft:flame": "rare",
-  "minecraft:infinity": "epic",
+  "minecraft:infinity": "legendary",
 
   "minecraft:luck_of_the_sea": "uncommon",
   "minecraft:lure": "uncommon",
@@ -43,9 +43,9 @@
   "minecraft:quick_charge": "uncommon",
   "minecraft:piercing": "common",
 
-  "minecraft:mending": "epic",
+  "minecraft:mending": "legendary",
   "minecraft:vanishing_curse": "epic",
   "minecraft:density": "uncommon",
   "minecraft:breach": "rare",
-  "minecraft:wind_burst": "epic"
+  "minecraft:wind_burst": "mystic"
 }

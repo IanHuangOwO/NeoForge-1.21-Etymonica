@@ -24,10 +24,11 @@ public class InfusionAltarBlockEntityRenderer implements BlockEntityRenderer<Abs
 
     // Controls for the orbital display
     private static final float ORBIT_HEIGHT = 1.5f;
-    private static final float ORBIT_RADIUS = 2f;
-    private static final float WAVE_AMPLITUDE_Z = 0.1f;
+    private static final float ORBIT_RADIUS = 1.5f;
+    private static final float WAVE_AMPLITUDE_Y = 0.2f;
     private static final float WAVE_SPEED = 0.1f;
     private static final float SELF_ROTATION_SPEED = 0.1f; // Speed of item rotating on its own axis
+
     private static final int MAX_VISIBLE_ITEMS = 16;
 
     public InfusionAltarBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
@@ -92,9 +93,9 @@ public class InfusionAltarBlockEntityRenderer implements BlockEntityRenderer<Abs
                 offsetX = (float) (Math.cos(angle + rotationRad) * ORBIT_RADIUS);
                 offsetZ = (float) (Math.sin(angle + rotationRad) * ORBIT_RADIUS);
                 
-                // Add the requested sine wave to the Z offset
-                float wave = (float) Math.sin((renderState.gameTime + i * 10) * WAVE_SPEED) * WAVE_AMPLITUDE_Z;
-                offsetZ += wave;
+                // Add the requested sine wave to the Y offset (bobbing effect)
+                float wave = (float) Math.sin((renderState.gameTime + i * 10) * WAVE_SPEED) * WAVE_AMPLITUDE_Y;
+                offsetY += wave;
             } else {
                 // Single item stays centered but still uses global rotation
                 angle = (float) Math.toRadians(renderState.rotation);

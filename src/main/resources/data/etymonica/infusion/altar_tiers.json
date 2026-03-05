@@ -16,7 +16,7 @@
       }
     },
     "tier1": {
-      "items_per_infusion": 16,
+      "items_per_infusion": 8,
       "speed": 0.30,
       "efficiency": 0.30,
       "link_radius": 16,
@@ -31,10 +31,10 @@
       }
     },
     "tier2": {
-      "items_per_infusion": 64,
+      "items_per_infusion": 16,
       "speed": 0.50,
       "efficiency": 0.50,
-      "link_radius": 64,
+      "link_radius": 32,
       "max_linked_pedestals": 16,
       "enchantment_weights": {
         "common": 0.2,

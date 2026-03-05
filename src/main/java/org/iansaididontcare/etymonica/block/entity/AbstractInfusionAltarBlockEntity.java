@@ -40,9 +40,9 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
-    private static final int TICKS_PER_ITEM = 200;
+    public static final int TICKS_PER_ITEM = 200;
     
-    private enum Mode {
+    public enum Mode {
         IDLE,
         RELINK,
         INFUSE
@@ -54,12 +54,24 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
+            statsDirty = true;
             if(level != null && !level.isClientSide()) {
                 level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
             }
         }
+
+        @Override
+        public int getSlotLimit(int slot) {
+            if (level == null) return 64;
+            String tierId = getTierIdFromState(level, getBlockState());
+            int limit = InfusionAltarData.getAltarTier(tierId).itemsPerInfusion();
+            return limit > 0 ? limit : 64;
+        }
     };
 
+    public ItemStackHandler getInventory() {
+        return inventory;
+    }
 
     private Mode mode = Mode.IDLE;
     private int progress = 0;
@@ -121,7 +133,7 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
                 processOneItem(level);
                 
                 if (resultsBuffer.isEmpty()) {
-                    spawnFinalResults(level);
+                    finishInfusion(level);
                     mode = Mode.IDLE;
                     progress = 0;
                     maxProgress = 0;
@@ -159,7 +171,12 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         int processCount = Math.min(bookStack.getCount(), lapisAvailable);
         processCount = Math.min(processCount, tierStats.itemsPerInfusion());
 
-        if (processCount <= 0) return AltarActionResult.INFUSE_BLOCKED;
+        if (processCount <= 0) {
+            player.displayClientMessage(Component.literal("Debug: Blocked. Tier: " + tierId + ", Books: " + bookStack.getCount() + ", LapisSum: " + lapisAvailable + ", Limit: " + tierStats.itemsPerInfusion()), false);
+            return AltarActionResult.INFUSE_BLOCKED;
+        }
+
+        player.displayClientMessage(Component.literal("Debug: Starting " + tierId + ". Count: " + processCount + " [Books:" + bookStack.getCount() + ", Lapis:" + lapisAvailable + ", Limit:" + tierStats.itemsPerInfusion() + "]"), false);
 
         resultsBuffer.clear();
         popBuffer.clear();
@@ -211,7 +228,7 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
     private void processOneItem(Level level) {
         if (resultsBuffer.isEmpty()) return;
 
-        // Check if books are still in the Altar (but don't consume yet)
+        // Check if books are still in the Altar
         ItemStack bookCheck = inventory.getStackInSlot(0);
         if (bookCheck.isEmpty() || !bookCheck.is(Items.BOOK)) {
             resultsBuffer.clear();
@@ -234,17 +251,17 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
             }
         }
 
-        // Add to final pop buffer
         popBuffer.add(paid ? result : new ItemStack(Items.BOOK));
     }
 
-    private void spawnFinalResults(Level level) {
-        // Bulk consume books from Altar based on how many were processed
+    private void finishInfusion(Level level) {
+        // Bulk consume books from Altar based on how many were successfully processed
         int countToConsume = popBuffer.size();
         if (countToConsume > 0) {
             inventory.extractItem(0, countToConsume, false);
         }
 
+        // Spawn all results at once
         for (ItemStack result : popBuffer) {
             ItemEntity entity = new ItemEntity(level, worldPosition.getX() + 0.5, worldPosition.getY() + 1.2, worldPosition.getZ() + 0.5, result);
             entity.setDeltaMovement(level.random.nextGaussian() * 0.05, 0.2 + level.random.nextDouble() * 0.2, level.random.nextGaussian() * 0.05);

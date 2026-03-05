@@ -46,9 +46,14 @@ public class EtymonicaClient {
     @SubscribeEvent
     public static void registerBER(EntityRenderersEvent.RegisterRenderers event) {
         event.registerBlockEntityRenderer(ModBlockEntities.PEDESTAL_BE.get(), InfusionAltarBlockEntityRenderer::new);
+        
         event.registerBlockEntityRenderer(ModBlockEntities.ENCHANTING_TABLE_TIER0_BE.get(), EnchantingTableBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.ENCHANTING_TABLE_TIER1_BE.get(), EnchantingTableBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.ENCHANTING_TABLE_TIER2_BE.get(), EnchantingTableBlockEntityRenderer::new);
+
         event.registerBlockEntityRenderer(ModBlockEntities.INFUSION_ALTAR_TIER0_BE.get(), InfusionAltarBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.INFUSION_ALTAR_TIER1_BE.get(), InfusionAltarBlockEntityRenderer::new);
+        event.registerBlockEntityRenderer(ModBlockEntities.INFUSION_ALTAR_TIER2_BE.get(), InfusionAltarBlockEntityRenderer::new);
     }
 
     @SubscribeEvent
