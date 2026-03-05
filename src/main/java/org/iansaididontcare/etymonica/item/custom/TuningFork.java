@@ -116,16 +116,12 @@ public class TuningFork extends Item {
             BlockEntity be = level.getBlockEntity(clickedPos);
             if (be instanceof AbstractEnchantingTableBlockEntity table) {
                 player.displayClientMessage(EnchantingTableMessages.action(table.beginOrCancelRelinkScan(player)), true);
-            } else if (be instanceof AbstractInfusionAltarBlockEntity altar) {
-                player.displayClientMessage(InfusionAltarMessages.action(altar.beginOrCancelRelinkScan(player)), true);
             }
             return InteractionResult.SUCCESS;
         }
 
         boolean isSupport = clickedState.is(ModBlockTags.ENCHANTING_TABLE_MODIFIERS) 
-                || clickedState.is(ModBlockTags.ENCHANTING_TABLE_BOOKSHELVES)
-                || clickedState.is(ModBlockTags.INFUSION_ALTAR_MODIFIERS)
-                || clickedState.is(ModBlockTags.INFUSION_ALTAR_PEDESTALS);
+                || clickedState.is(ModBlockTags.ENCHANTING_TABLE_BOOKSHELVES);
 
         if (!isSupport) return InteractionResult.PASS;
 
@@ -144,10 +140,6 @@ public class TuningFork extends Item {
         if (targetBe instanceof AbstractEnchantingTableBlockEntity table) {
             if (player != null) {
                 player.displayClientMessage(EnchantingTableMessages.action(table.tryLinkBlock((net.minecraft.server.level.ServerLevel) level, clickedPos)), true);
-            }
-        } else if (targetBe instanceof AbstractInfusionAltarBlockEntity altar) {
-            if (player != null) {
-                player.displayClientMessage(InfusionAltarMessages.action(altar.tryManualLink((net.minecraft.server.level.ServerLevel) level, clickedPos)), true);
             }
         } else {
             if (player != null) player.displayClientMessage(Component.translatable("message.etymonica.tuning_fork.bound_missing"), true);

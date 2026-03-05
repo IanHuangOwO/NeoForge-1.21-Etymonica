@@ -43,11 +43,8 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
     
     public enum Mode {
         IDLE,
-        RELINK,
         INFUSE
     }
-
-    private static final int SCAN_POSITIONS_PER_TICK = 1500;
 
     // --- Inventory and runtime state shared by ticking and renderer ---
     protected ItemStackHandler inventory = new ItemStackHandler(1) {
@@ -86,27 +83,11 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
     private long lastDataRevision = -1L;
     private String lastTierId = "";
 
-    private final Set<BlockPos> linkedModifiers = new HashSet<>();
-    private final Set<BlockPos> linkedPedestals = new HashSet<>();
-    
     // items queued to be processed
     private final List<ItemStack> resultsBuffer = new ArrayList<>();
     // completed items waiting to be popped at the end
     private final List<ItemStack> popBuffer = new ArrayList<>();
     
-    private final Map<BlockPos, LinkedModifierContribution> modifierContributionCache = new HashMap<>();
-    private float linkedSpeedTotal = 0f;
-    private float linkedEfficiencyTotal = 0f;
-
-    private int scanCap = 0;
-    private @Nullable InfusionRelinkScanner relinkSession = null;
-    private int scanTotalPositions = 0;
-    private int scanScannedPositions = 0;
-    private int scanLinkedCount = 0;
-    private @Nullable UUID relinkRequester = null;
-
-    private record LinkedModifierContribution(long fingerprint, float speed, float efficiency) {}
-
     public AbstractInfusionAltarBlockEntity(BlockEntityType<?> type, BlockPos pos, BlockState state) {
         super(type, pos, state);
     }
@@ -118,12 +99,8 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         return rotation;
     }
 
-    // --- Main server tick: relink progression, periodic stat recompute, and infusion progress ---
+    // --- Main server tick: periodic stat recompute and infusion progress ---
     public void tickServer(Level level, BlockPos pos, BlockState state) {
-        if (mode == Mode.RELINK) {
-            advanceRelinkScan((ServerLevel) level);
-        }
-
         if (recomputeCooldownTicks-- <= 0) {
             recomputeCooldownTicks = 20;
             recomputeStatsNow(level, state);
@@ -158,21 +135,7 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         String tierId = getTierIdFromState(level, getBlockState());
         InfusionAltarStats tierStats = InfusionAltarData.getAltarTier(tierId);
 
-        int lapisAvailable = 0;
-        for (BlockPos pPos : linkedPedestals) {
-            BlockEntity be = level.getBlockEntity(pPos);
-            if (be instanceof AbstractInfusionAltarBlockEntity pedestal) {
-                ItemStack fuel = pedestal.inventory.getStackInSlot(0);
-                if (!fuel.isEmpty() && fuel.is(Items.LAPIS_LAZULI)) {
-                    lapisAvailable += fuel.getCount();
-                }
-            }
-        }
-
-        if (lapisAvailable <= 0) return AltarActionResult.INFUSE_BLOCKED;
-
-        int processCount = Math.min(bookStack.getCount(), lapisAvailable);
-        processCount = Math.min(processCount, tierStats.itemsPerInfusion());
+        int processCount = Math.min(bookStack.getCount(), tierStats.itemsPerInfusion());
 
         if (processCount <= 0) {
             return AltarActionResult.INFUSE_BLOCKED;
@@ -236,22 +199,7 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         }
 
         ItemStack result = resultsBuffer.remove(0);
-        boolean paid = false;
-
-        // Consume Lapis
-        for (BlockPos pPos : linkedPedestals) {
-            BlockEntity be = level.getBlockEntity(pPos);
-            if (be instanceof AbstractInfusionAltarBlockEntity pedestal) {
-                ItemStack fuel = pedestal.inventory.getStackInSlot(0);
-                if (!fuel.isEmpty() && fuel.is(Items.LAPIS_LAZULI)) {
-                    pedestal.inventory.extractItem(0, 1, false);
-                    paid = true;
-                    break;
-                }
-            }
-        }
-
-        popBuffer.add(paid ? result : new ItemStack(Items.BOOK));
+        popBuffer.add(result);
     }
 
     private void finishInfusion(Level level) {
@@ -271,86 +219,6 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
     }
 
-    // --- Relink lifecycle: scan start/cancel and incremental linking across ticks ---
-    public AltarActionResult beginOrCancelRelinkScan(@Nullable Player requester) {
-        if (level == null || level.isClientSide()) return AltarActionResult.RELINK_BLOCKED;
-        if (mode == Mode.RELINK) {
-            cancelRelinkScan((ServerLevel) level);
-            return AltarActionResult.RELINK_CANCELLED;
-        }
-        String tierId = getTierIdFromState(level, getBlockState());
-        InfusionAltarStats base = InfusionAltarData.getAltarTier(tierId);
-        scanCap = 9999;
-        relinkSession = new InfusionRelinkScanner(base.linkRadius(), scanCap);
-        linkedModifiers.clear();
-        linkedPedestals.clear();
-        scanLinkedCount = 0;
-        modifierContributionCache.clear();
-        linkedSpeedTotal = 0f;
-        linkedEfficiencyTotal = 0f;
-        if (base.linkRadius() <= 0) {
-            mode = Mode.IDLE;
-            relinkSession = null;
-            return AltarActionResult.RELINK_BLOCKED;
-        }
-        scanTotalPositions = relinkSession.getTotalPositions();
-        scanScannedPositions = relinkSession.getScannedPositions();
-        mode = Mode.RELINK;
-        relinkRequester = requester != null ? requester.getUUID() : null;
-        setChanged();
-        level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
-        return AltarActionResult.RELINK_STARTED;
-    }
-
-    private void cancelRelinkScan(ServerLevel level) {
-        mode = Mode.IDLE;
-        relinkSession = null;
-        relinkRequester = null;
-        setChanged();
-        level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
-    }
-
-    private void advanceRelinkScan(ServerLevel level) {
-        if (relinkSession == null || !relinkSession.isActive()) {
-            mode = Mode.IDLE;
-            relinkSession = null;
-            return;
-        }
-        int budget = SCAN_POSITIONS_PER_TICK;
-        while (budget-- > 0 && mode == Mode.RELINK) {
-            BlockPos target = relinkSession.nextCandidate(worldPosition, scanLinkedCount);
-            if (target == null) break;
-            scanScannedPositions = relinkSession.getScannedPositions();
-            tryLinkedBlock(target);
-        }
-        if (relinkSession != null) {
-            scanScannedPositions = relinkSession.getScannedPositions();
-            if (!relinkSession.isActive()) {
-                mode = Mode.IDLE;
-                relinkSession = null;
-                if (relinkRequester != null) {
-                    Player requester = level.getPlayerByUUID(relinkRequester);
-                    if (requester != null) {
-                        requester.displayClientMessage(Component.translatable("message.etymonica.relink.completed", scanLinkedCount), true);
-                    }
-                }
-                relinkRequester = null;
-                statsDirty = true;
-                setChanged();
-                level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
-            }
-        }
-    }
-
-    private void tryLinkedBlock(BlockPos target) {
-        BlockState st = level.getBlockState(target);
-        if (st.is(ModBlockTags.INFUSION_ALTAR_PEDESTALS)) {
-            tryLinkedPedestal(target);
-        } else if (st.is(ModBlockTags.INFUSION_ALTAR_MODIFIERS)) {
-            tryLinkedModifier(target);
-        }
-    }
-
     // --- Stat refresh API and recompute pipeline ---
     private void recomputeStatsNow(Level level, BlockState state) {
         String tierId = getTierIdFromState(level, state);
@@ -358,133 +226,14 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         boolean tierChanged = !tierId.equals(lastTierId);
         long revision = InfusionAltarData.getRevision();
         boolean dataChanged = revision != lastDataRevision;
-        boolean linkedChanged = reconcileLinkedContributions(level);
 
-        if (!(statsDirty || tierChanged || dataChanged || linkedChanged)) return;
+        if (!(statsDirty || tierChanged || dataChanged)) return;
 
         lastTierId = tierId;
         lastDataRevision = revision;
-        currentSpeed = (float) (base.speed() + linkedSpeedTotal);
-        currentEfficiency = (float) (base.efficiency() + linkedEfficiencyTotal);
+        currentSpeed = (float) base.speed();
+        currentEfficiency = (float) base.efficiency();
         statsDirty = false;
-    }
-
-    // --- Incremental cache reconciliation for linked modifier contributions ---
-    private boolean reconcileLinkedContributions(Level level) {
-        boolean changed = false;
-        Iterator<BlockPos> pedIt = linkedPedestals.iterator();
-        while (pedIt.hasNext()) {
-            if (!level.getBlockState(pedIt.next()).is(ModBlockTags.INFUSION_ALTAR_PEDESTALS)) {
-                pedIt.remove();
-                changed = true;
-            }
-        }
-        Iterator<BlockPos> linkedIt = linkedModifiers.iterator();
-        while (linkedIt.hasNext()) {
-            BlockPos pos = linkedIt.next();
-            BlockState state = level.getBlockState(pos);
-            if (!state.is(ModBlockTags.INFUSION_ALTAR_MODIFIERS)) {
-                linkedIt.remove();
-                removeModifierContribution(pos);
-                changed = true;
-                continue;
-            }
-            long fingerprint = Block.getId(state);
-            LinkedModifierContribution previous = modifierContributionCache.get(pos);
-            if (previous == null || previous.fingerprint() != fingerprint) {
-                if (previous != null) subtractModifierContribution(previous);
-                Identifier id = blockId(level, state.getBlock());
-                InfusionAltarModifierStats m = InfusionAltarData.getModifier(id);
-                LinkedModifierContribution next = new LinkedModifierContribution(fingerprint, (float) m.speed(), (float) m.efficiency());
-                modifierContributionCache.put(pos, next);
-                addModifierContribution(next);
-                changed = true;
-            }
-        }
-        Iterator<Map.Entry<BlockPos, LinkedModifierContribution>> cacheIt = modifierContributionCache.entrySet().iterator();
-        while (cacheIt.hasNext()) {
-            if (!linkedModifiers.contains(cacheIt.next().getKey())) {
-                subtractModifierContribution(cacheIt.next().getValue());
-                cacheIt.remove();
-                changed = true;
-            }
-        }
-        int totalCount = linkedModifiers.size() + linkedPedestals.size();
-        if (scanLinkedCount != totalCount) {
-            scanLinkedCount = totalCount;
-            changed = true;
-        }
-        if (changed) statsDirty = true;
-        return changed;
-    }
-
-    private void addModifierContribution(LinkedModifierContribution c) {
-        linkedSpeedTotal += c.speed();
-        linkedEfficiencyTotal += c.efficiency();
-    }
-
-    private void subtractModifierContribution(LinkedModifierContribution c) {
-        linkedSpeedTotal -= c.speed();
-        linkedEfficiencyTotal -= c.efficiency();
-    }
-
-    private void removeModifierContribution(BlockPos pos) {
-        LinkedModifierContribution old = modifierContributionCache.remove(pos);
-        if (old != null) subtractModifierContribution(old);
-    }
-
-    // --- Manual tuning-fork link API and local link-set helpers ---
-    public AltarActionResult tryManualLink(ServerLevel level, BlockPos targetPos) {
-        BlockState st = level.getBlockState(targetPos);
-        if (st.is(ModBlockTags.INFUSION_ALTAR_PEDESTALS)) {
-            if (linkedPedestals.contains(targetPos)) {
-                linkedPedestals.remove(targetPos);
-                statsDirty = true;
-                return AltarActionResult.MODIFIER_UNLINKED;
-            } else if (tryLinkedPedestal(targetPos)) return AltarActionResult.MODIFIER_LINKED;
-        } else if (st.is(ModBlockTags.INFUSION_ALTAR_MODIFIERS)) {
-            if (linkedModifiers.contains(targetPos)) {
-                linkedModifiers.remove(targetPos);
-                removeModifierContribution(targetPos);
-                statsDirty = true;
-                return AltarActionResult.MODIFIER_UNLINKED;
-            } else if (tryLinkedModifier(targetPos)) return AltarActionResult.MODIFIER_LINKED;
-        }
-        return AltarActionResult.LINK_BLOCKED_INVALID_BLOCK;
-    }
-
-    private boolean tryLinkedPedestal(BlockPos pedestalPos) {
-        if (level == null || linkedPedestals.contains(pedestalPos)) return false;
-        String tierId = getTierIdFromState(level, getBlockState());
-        InfusionAltarStats tierStats = InfusionAltarData.getAltarTier(tierId);
-        if (linkedPedestals.size() >= tierStats.maxLinkedPedestals()) return false;
-        boolean added = linkedPedestals.add(pedestalPos.immutable());
-        if (added) {
-            scanLinkedCount = linkedModifiers.size() + linkedPedestals.size();
-            statsDirty = true;
-        }
-        return added;
-    }
-
-    private boolean tryLinkedModifier(BlockPos modifierPos) {
-        if (level == null || linkedModifiers.contains(modifierPos)) return false;
-        BlockState state = level.getBlockState(modifierPos);
-        Identifier id = blockId(level, state.getBlock());
-        InfusionAltarModifierStats stats = InfusionAltarData.getModifier(id);
-        if (stats.maxNum() > 0 && countModifiersOfType(state.getBlock()) >= stats.maxNum()) return false;
-        boolean added = linkedModifiers.add(modifierPos.immutable());
-        if (added) {
-            scanLinkedCount = linkedModifiers.size() + linkedPedestals.size();
-            statsDirty = true;
-        }
-        return added;
-    }
-
-    private int countModifiersOfType(Block block) {
-        if (level == null) return 0;
-        int count = 0;
-        for (BlockPos pos : linkedModifiers) if (level.getBlockState(pos).is(block)) count++;
-        return count;
     }
 
     // --- Small registry and tier resolution helpers ---
@@ -512,14 +261,6 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
     protected void saveAdditional(ValueOutput output) {
         super.saveAdditional(output);
         inventory.serialize(output);
-        long[] linkedMod = linkedModifiers.stream().mapToLong(BlockPos::asLong).toArray();
-        CompoundTag linkedModTag = new CompoundTag();
-        linkedModTag.putLongArray("positions", linkedMod);
-        output.store("infusion_altar.linked_modifiers", CompoundTag.CODEC, linkedModTag);
-        long[] linkedPed = linkedPedestals.stream().mapToLong(BlockPos::asLong).toArray();
-        CompoundTag linkedPedTag = new CompoundTag();
-        linkedPedTag.putLongArray("positions", linkedPed);
-        output.store("infusion_altar.linked_pedestals", CompoundTag.CODEC, linkedPedTag);
         
         output.store("infusion_altar.results_buffer", ItemStack.CODEC.listOf(), resultsBuffer);
         output.store("infusion_altar.pop_buffer", ItemStack.CODEC.listOf(), popBuffer);
@@ -533,16 +274,6 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
     protected void loadAdditional(ValueInput input) {
         super.loadAdditional(input);
         inventory.deserialize(input);
-        linkedModifiers.clear();
-        input.read("infusion_altar.linked_modifiers", CompoundTag.CODEC).ifPresent(tag -> {
-            long[] linked = tag.getLongArray("positions").orElse(new long[0]);
-            for (long l : linked) linkedModifiers.add(BlockPos.of(l));
-        });
-        linkedPedestals.clear();
-        input.read("infusion_altar.linked_pedestals", CompoundTag.CODEC).ifPresent(tag -> {
-            long[] linked = tag.getLongArray("positions").orElse(new long[0]);
-            for (long l : linked) linkedPedestals.add(BlockPos.of(l));
-        });
         
         resultsBuffer.clear();
         input.read("infusion_altar.results_buffer", ItemStack.CODEC.listOf()).ifPresent(resultsBuffer::addAll);
@@ -555,8 +286,6 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         int modeIdx = input.getIntOr("infusion_altar.mode", 0);
         mode = Mode.values()[modeIdx % Mode.values().length];
         if (this.level != null && !this.level.isClientSide()) {
-            if (mode == Mode.RELINK) mode = Mode.IDLE;
-            relinkSession = null;
             statsDirty = true;
         }
     }
