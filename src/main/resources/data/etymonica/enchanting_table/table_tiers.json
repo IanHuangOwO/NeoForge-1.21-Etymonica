@@ -20,7 +20,7 @@
     },
     "tier2": {
       "enchanting_power_cap": 150,
-      "link_radius": 64,
+      "link_radius": 32,
       "max_tier_enchantment": 0,
       "max_linked_bookshelves": 512,
       "speed": 0.50,

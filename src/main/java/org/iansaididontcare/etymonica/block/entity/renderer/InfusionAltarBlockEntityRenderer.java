@@ -27,7 +27,7 @@ public class InfusionAltarBlockEntityRenderer implements BlockEntityRenderer<Abs
     private static final float ORBIT_RADIUS = 1.5f;
     private static final float WAVE_AMPLITUDE_Y = 0.2f;
     private static final float WAVE_SPEED = 0.1f;
-    private static final float SELF_ROTATION_SPEED = 0.1f; // Speed of item rotating on its own axis
+    private static final float SELF_ROTATION_SPEED = 1f;
 
     private static final int MAX_VISIBLE_ITEMS = 16;
 
@@ -54,8 +54,8 @@ public class InfusionAltarBlockEntityRenderer implements BlockEntityRenderer<Abs
         int stateIdx = 0;
 
         // Collect items from all slots, up to MAX_VISIBLE_ITEMS
-        for (int slot = 0; slot < blockEntity.inventory.getSlots() && stateIdx < MAX_VISIBLE_ITEMS; slot++) {
-            ItemStack stack = blockEntity.inventory.getStackInSlot(slot);
+        for (int slot = 0; slot < blockEntity.getInventory().getSlots() && stateIdx < MAX_VISIBLE_ITEMS; slot++) {
+            ItemStack stack = blockEntity.getInventory().getStackInSlot(slot);
             if (stack.isEmpty()) continue;
 
             // If quantity is > 1, we show multiple items (capped)

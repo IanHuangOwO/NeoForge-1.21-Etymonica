@@ -39,22 +39,13 @@ public abstract class AbstractInfusionAltarBlock extends BaseEntityBlock {
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                           Player player, InteractionHand hand, BlockHitResult hitResult) {
         if(level.getBlockEntity(pos) instanceof AbstractInfusionAltarBlockEntity altar) {
-            ItemStack inSlot = altar.inventory.getStackInSlot(0);
+            ItemStack inSlot = altar.getInventory().getStackInSlot(0);
 
             if (!stack.isEmpty()) {
-                if (stack.is(org.iansaididontcare.etymonica.tag.ModItemTags.QUILLS)) {
-                    // Right-click with Quill -> Start infusion
-                    if (!level.isClientSide()) {
-                        var result = altar.attemptStartInfusion(player);
-                        player.displayClientMessage(org.iansaididontcare.etymonica.registry.infusion.InfusionAltarMessages.action(result), true);
-                    }
-                    return InteractionResult.SUCCESS;
-                }
-
-                // Try to insert (Always 1)
+                // Try to insert one item (Always 1)
                 if (!level.isClientSide()) {
                     ItemStack toInsert = stack.copyWithCount(1);
-                    ItemStack remainder = altar.inventory.insertItem(0, toInsert, false);
+                    ItemStack remainder = altar.getInventory().insertItem(0, toInsert, false);
 
                     if (remainder.isEmpty()) {
                         stack.shrink(1);
@@ -63,15 +54,25 @@ public abstract class AbstractInfusionAltarBlock extends BaseEntityBlock {
                 }
                 return InteractionResult.SUCCESS;
             } else if (hand == InteractionHand.MAIN_HAND) {
-                if (!inSlot.isEmpty()) {
-                    // Try to extract (empty hand)
-                    if (!level.isClientSide()) {
-                        int amountToExtract = player.isCrouching() ? inSlot.getCount() : 1;
-                        ItemStack extracted = altar.inventory.extractItem(0, amountToExtract, false);
-                        if (!extracted.isEmpty()) {
-                            player.setItemInHand(hand, extracted);
-                            level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 1f, 1f);
+                if (player.isCrouching()) {
+                    // Sneak + Empty Hand -> Try to extract
+                    if (!inSlot.isEmpty()) {
+                        if (!level.isClientSide()) {
+                            // Take all if sneaking
+                            ItemStack extracted = altar.getInventory().extractItem(0, inSlot.getCount(), false);
+                            if (!extracted.isEmpty()) {
+                                player.setItemInHand(hand, extracted);
+                                level.playSound(null, pos, SoundEvents.ITEM_PICKUP, SoundSource.BLOCKS, 1f, 1f);
+                            }
                         }
+                        return InteractionResult.SUCCESS;
+                    }
+                } else {
+                    // Normal Right Click + Empty Hand -> Try to start infusion
+                    if (!level.isClientSide()) {
+                        var result = altar.attemptStartInfusion(player);
+                        // Optional: only show message if it actually started or failed for a specific reason
+                        player.displayClientMessage(org.iansaididontcare.etymonica.registry.infusion.InfusionAltarMessages.action(result), true);
                     }
                     return InteractionResult.SUCCESS;
                 }

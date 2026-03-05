@@ -4,8 +4,6 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
@@ -40,6 +38,7 @@ import org.jetbrains.annotations.Nullable;
 import java.util.*;
 
 public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
+    // --- Core constants and machine modes ---
     public static final int TICKS_PER_ITEM = 200;
     
     public enum Mode {
@@ -50,7 +49,8 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
 
     private static final int SCAN_POSITIONS_PER_TICK = 1500;
 
-    public final ItemStackHandler inventory = new ItemStackHandler(1) {
+    // --- Inventory and runtime state shared by ticking and renderer ---
+    protected ItemStackHandler inventory = new ItemStackHandler(1) {
         @Override
         protected void onContentsChanged(int slot) {
             setChanged();
@@ -62,10 +62,10 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
 
         @Override
         public int getSlotLimit(int slot) {
-            if (level == null) return 64;
+            if (level == null) return 1;
             String tierId = getTierIdFromState(level, getBlockState());
             int limit = InfusionAltarData.getAltarTier(tierId).itemsPerInfusion();
-            return limit > 0 ? limit : 64;
+            return limit > 0 ? limit : 1;
         }
     };
 
@@ -111,12 +111,14 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         super(type, pos, state);
     }
 
+    // --- Client-side visual rotation for the rendered items ---
     public float getRenderingRotation() {
         rotation += 0.5f;
         if(rotation >= 360) rotation = 0;
         return rotation;
     }
 
+    // --- Main server tick: relink progression, periodic stat recompute, and infusion progress ---
     public void tickServer(Level level, BlockPos pos, BlockState state) {
         if (mode == Mode.RELINK) {
             advanceRelinkScan((ServerLevel) level);
@@ -146,6 +148,7 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         }
     }
 
+    // --- Infusion lifecycle: start/stop flow, item calculation, and bulk payout ---
     public AltarActionResult attemptStartInfusion(Player player) {
         if (level == null || level.isClientSide() || mode != Mode.IDLE) return AltarActionResult.INFUSE_BLOCKED;
 
@@ -172,11 +175,8 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         processCount = Math.min(processCount, tierStats.itemsPerInfusion());
 
         if (processCount <= 0) {
-            player.displayClientMessage(Component.literal("Debug: Blocked. Tier: " + tierId + ", Books: " + bookStack.getCount() + ", LapisSum: " + lapisAvailable + ", Limit: " + tierStats.itemsPerInfusion()), false);
             return AltarActionResult.INFUSE_BLOCKED;
         }
-
-        player.displayClientMessage(Component.literal("Debug: Starting " + tierId + ". Count: " + processCount + " [Books:" + bookStack.getCount() + ", Lapis:" + lapisAvailable + ", Limit:" + tierStats.itemsPerInfusion() + "]"), false);
 
         resultsBuffer.clear();
         popBuffer.clear();
@@ -271,88 +271,7 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
     }
 
-    // --- Stats & Linking Logic ---
-
-    private void recomputeStatsNow(Level level, BlockState state) {
-        String tierId = getTierIdFromState(level, state);
-        InfusionAltarStats base = InfusionAltarData.getAltarTier(tierId);
-        boolean tierChanged = !tierId.equals(lastTierId);
-        long revision = InfusionAltarData.getRevision();
-        boolean dataChanged = revision != lastDataRevision;
-        boolean linkedChanged = reconcileLinkedContributions(level);
-
-        if (!(statsDirty || tierChanged || dataChanged || linkedChanged)) return;
-
-        lastTierId = tierId;
-        lastDataRevision = revision;
-        currentSpeed = (float) (base.speed() + linkedSpeedTotal);
-        currentEfficiency = (float) (base.efficiency() + linkedEfficiencyTotal);
-        statsDirty = false;
-    }
-
-    private boolean reconcileLinkedContributions(Level level) {
-        boolean changed = false;
-        Iterator<BlockPos> pedIt = linkedPedestals.iterator();
-        while (pedIt.hasNext()) {
-            if (!level.getBlockState(pedIt.next()).is(ModBlockTags.INFUSION_ALTAR_PEDESTALS)) {
-                pedIt.remove();
-                changed = true;
-            }
-        }
-        Iterator<BlockPos> linkedIt = linkedModifiers.iterator();
-        while (linkedIt.hasNext()) {
-            BlockPos pos = linkedIt.next();
-            BlockState state = level.getBlockState(pos);
-            if (!state.is(ModBlockTags.INFUSION_ALTAR_MODIFIERS)) {
-                linkedIt.remove();
-                removeModifierContribution(pos);
-                changed = true;
-                continue;
-            }
-            long fingerprint = Block.getId(state);
-            LinkedModifierContribution previous = modifierContributionCache.get(pos);
-            if (previous == null || previous.fingerprint() != fingerprint) {
-                if (previous != null) subtractModifierContribution(previous);
-                Identifier id = blockId(level, state.getBlock());
-                InfusionAltarModifierStats m = InfusionAltarData.getModifier(id);
-                LinkedModifierContribution next = new LinkedModifierContribution(fingerprint, (float) m.speed(), (float) m.efficiency());
-                modifierContributionCache.put(pos, next);
-                addModifierContribution(next);
-                changed = true;
-            }
-        }
-        Iterator<Map.Entry<BlockPos, LinkedModifierContribution>> cacheIt = modifierContributionCache.entrySet().iterator();
-        while (cacheIt.hasNext()) {
-            if (!linkedModifiers.contains(cacheIt.next().getKey())) {
-                subtractModifierContribution(cacheIt.next().getValue());
-                cacheIt.remove();
-                changed = true;
-            }
-        }
-        int totalCount = linkedModifiers.size() + linkedPedestals.size();
-        if (scanLinkedCount != totalCount) {
-            scanLinkedCount = totalCount;
-            changed = true;
-        }
-        if (changed) statsDirty = true;
-        return changed;
-    }
-
-    private void addModifierContribution(LinkedModifierContribution c) {
-        linkedSpeedTotal += c.speed();
-        linkedEfficiencyTotal += c.efficiency();
-    }
-
-    private void subtractModifierContribution(LinkedModifierContribution c) {
-        linkedSpeedTotal -= c.speed();
-        linkedEfficiencyTotal -= c.efficiency();
-    }
-
-    private void removeModifierContribution(BlockPos pos) {
-        LinkedModifierContribution old = modifierContributionCache.remove(pos);
-        if (old != null) subtractModifierContribution(old);
-    }
-
+    // --- Relink lifecycle: scan start/cancel and incremental linking across ticks ---
     public AltarActionResult beginOrCancelRelinkScan(@Nullable Player requester) {
         if (level == null || level.isClientSide()) return AltarActionResult.RELINK_BLOCKED;
         if (mode == Mode.RELINK) {
@@ -362,7 +281,7 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         String tierId = getTierIdFromState(level, getBlockState());
         InfusionAltarStats base = InfusionAltarData.getAltarTier(tierId);
         scanCap = 9999;
-        relinkSession = new org.iansaididontcare.etymonica.block.entity.infusionaltar.infuser.InfusionRelinkScanner(base.linkRadius(), scanCap);
+        relinkSession = new InfusionRelinkScanner(base.linkRadius(), scanCap);
         linkedModifiers.clear();
         linkedPedestals.clear();
         scanLinkedCount = 0;
@@ -432,6 +351,89 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         }
     }
 
+    // --- Stat refresh API and recompute pipeline ---
+    private void recomputeStatsNow(Level level, BlockState state) {
+        String tierId = getTierIdFromState(level, state);
+        InfusionAltarStats base = InfusionAltarData.getAltarTier(tierId);
+        boolean tierChanged = !tierId.equals(lastTierId);
+        long revision = InfusionAltarData.getRevision();
+        boolean dataChanged = revision != lastDataRevision;
+        boolean linkedChanged = reconcileLinkedContributions(level);
+
+        if (!(statsDirty || tierChanged || dataChanged || linkedChanged)) return;
+
+        lastTierId = tierId;
+        lastDataRevision = revision;
+        currentSpeed = (float) (base.speed() + linkedSpeedTotal);
+        currentEfficiency = (float) (base.efficiency() + linkedEfficiencyTotal);
+        statsDirty = false;
+    }
+
+    // --- Incremental cache reconciliation for linked modifier contributions ---
+    private boolean reconcileLinkedContributions(Level level) {
+        boolean changed = false;
+        Iterator<BlockPos> pedIt = linkedPedestals.iterator();
+        while (pedIt.hasNext()) {
+            if (!level.getBlockState(pedIt.next()).is(ModBlockTags.INFUSION_ALTAR_PEDESTALS)) {
+                pedIt.remove();
+                changed = true;
+            }
+        }
+        Iterator<BlockPos> linkedIt = linkedModifiers.iterator();
+        while (linkedIt.hasNext()) {
+            BlockPos pos = linkedIt.next();
+            BlockState state = level.getBlockState(pos);
+            if (!state.is(ModBlockTags.INFUSION_ALTAR_MODIFIERS)) {
+                linkedIt.remove();
+                removeModifierContribution(pos);
+                changed = true;
+                continue;
+            }
+            long fingerprint = Block.getId(state);
+            LinkedModifierContribution previous = modifierContributionCache.get(pos);
+            if (previous == null || previous.fingerprint() != fingerprint) {
+                if (previous != null) subtractModifierContribution(previous);
+                Identifier id = blockId(level, state.getBlock());
+                InfusionAltarModifierStats m = InfusionAltarData.getModifier(id);
+                LinkedModifierContribution next = new LinkedModifierContribution(fingerprint, (float) m.speed(), (float) m.efficiency());
+                modifierContributionCache.put(pos, next);
+                addModifierContribution(next);
+                changed = true;
+            }
+        }
+        Iterator<Map.Entry<BlockPos, LinkedModifierContribution>> cacheIt = modifierContributionCache.entrySet().iterator();
+        while (cacheIt.hasNext()) {
+            if (!linkedModifiers.contains(cacheIt.next().getKey())) {
+                subtractModifierContribution(cacheIt.next().getValue());
+                cacheIt.remove();
+                changed = true;
+            }
+        }
+        int totalCount = linkedModifiers.size() + linkedPedestals.size();
+        if (scanLinkedCount != totalCount) {
+            scanLinkedCount = totalCount;
+            changed = true;
+        }
+        if (changed) statsDirty = true;
+        return changed;
+    }
+
+    private void addModifierContribution(LinkedModifierContribution c) {
+        linkedSpeedTotal += c.speed();
+        linkedEfficiencyTotal += c.efficiency();
+    }
+
+    private void subtractModifierContribution(LinkedModifierContribution c) {
+        linkedSpeedTotal -= c.speed();
+        linkedEfficiencyTotal -= c.efficiency();
+    }
+
+    private void removeModifierContribution(BlockPos pos) {
+        LinkedModifierContribution old = modifierContributionCache.remove(pos);
+        if (old != null) subtractModifierContribution(old);
+    }
+
+    // --- Manual tuning-fork link API and local link-set helpers ---
     public AltarActionResult tryManualLink(ServerLevel level, BlockPos targetPos) {
         BlockState st = level.getBlockState(targetPos);
         if (st.is(ModBlockTags.INFUSION_ALTAR_PEDESTALS)) {
@@ -485,6 +487,7 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         return count;
     }
 
+    // --- Small registry and tier resolution helpers ---
     protected final Identifier blockId(Level level, Block block) {
         return level.registryAccess().lookupOrThrow(Registries.BLOCK).getKey(block);
     }
@@ -496,6 +499,7 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         return "tier0";
     }
 
+    // --- Block-entity lifecycle hooks: drop inventory and persist runtime data ---
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
         SimpleContainer inv = new SimpleContainer(inventory.getSlots());
