@@ -6,7 +6,8 @@ public record InfusionAltarStats(
     double efficiency,
     int linkRadius,
     int maxLinkedPedestals,
-    EnchantmentTierWeights weights
+    EnchantmentTierWeights weights,
+    MultiblockStructure multiblockStructure
 ) {
-    public static final InfusionAltarStats DEFAULT = new InfusionAltarStats(1, 0.1, 0.0, 4, 16, EnchantmentTierWeights.DEFAULT);
+    public static final InfusionAltarStats DEFAULT = new InfusionAltarStats(1, 0.1, 0.0, 4, 16, EnchantmentTierWeights.DEFAULT, MultiblockStructure.DEFAULT);
 }

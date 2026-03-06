@@ -16,6 +16,7 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import org.iansaididontcare.etymonica.block.entity.ModBlockEntities;
 import org.iansaididontcare.etymonica.block.entity.renderer.EnchantingTableBlockEntityRenderer;
 import org.iansaididontcare.etymonica.block.entity.renderer.InfusionAltarBlockEntityRenderer;
+import org.iansaididontcare.etymonica.block.entity.renderer.InfusionCoreBlockEntityRenderer;
 import org.iansaididontcare.etymonica.fluid.ModFluids;
 import org.iansaididontcare.etymonica.screen.ModMenuTypes;
 import org.iansaididontcare.etymonica.screen.custom.EnchantingTableScreen;
@@ -54,6 +55,8 @@ public class EtymonicaClient {
         event.registerBlockEntityRenderer(ModBlockEntities.INFUSION_ALTAR_TIER0_BE.get(), InfusionAltarBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.INFUSION_ALTAR_TIER1_BE.get(), InfusionAltarBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.INFUSION_ALTAR_TIER2_BE.get(), InfusionAltarBlockEntityRenderer::new);
+
+        event.registerBlockEntityRenderer(ModBlockEntities.INFUSION_CORE_BE.get(), InfusionCoreBlockEntityRenderer::new);
     }
 
     @SubscribeEvent

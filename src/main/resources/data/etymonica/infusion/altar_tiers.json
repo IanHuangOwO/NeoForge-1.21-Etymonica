@@ -13,6 +13,24 @@
         "epic": 0.0,
         "legendary": 0.0,
         "mystic": 0.0
+      },
+      "multiblock_structure": {
+        "offset_y": 6,
+        "bottom": [
+          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
+          ["etymonica:orichalcum_block", "minecraft:glass",            "etymonica:orichalcum_block"],
+          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"]
+        ],
+        "middle": [
+          ["etymonica:orichalcum_block", "minecraft:glass", "etymonica:orichalcum_block"],
+          ["minecraft:glass", "", "minecraft:glass"],
+          ["etymonica:orichalcum_block", "minecraft:glass", "etymonica:orichalcum_block"]
+        ],
+        "top": [
+          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
+          ["etymonica:orichalcum_block", "minecraft:glass",            "etymonica:orichalcum_block"],
+          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"]
+        ]
       }
     },
     "tier1": {
@@ -28,6 +46,24 @@
         "epic": 0.09,
         "legendary": 0.01,
         "mystic": 0.0
+      },
+      "multiblock_structure": {
+        "offset_y": 5,
+        "bottom": [
+          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
+          ["etymonica:orichalcum_block", "minecraft:glass",            "etymonica:orichalcum_block"],
+          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"]
+        ],
+        "middle": [
+          ["etymonica:orichalcum_block", "minecraft:glass", "etymonica:orichalcum_block"],
+          ["minecraft:glass",            "etymonica:infusion_core",   "minecraft:glass"],
+          ["etymonica:orichalcum_block", "minecraft:glass", "etymonica:orichalcum_block"]
+        ],
+        "top": [
+          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
+          ["etymonica:orichalcum_block", "minecraft:glass",            "etymonica:orichalcum_block"],
+          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"]
+        ]
       }
     },
     "tier2": {
@@ -43,6 +79,24 @@
         "epic": 0.2,
         "legendary": 0.09,
         "mystic": 0.01
+      },
+      "multiblock_structure": {
+        "offset_y": 5,
+        "bottom": [
+          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
+          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
+          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"]
+        ],
+        "middle": [
+          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
+          ["etymonica:orichalcum_block", "etymonica:infusion_core", "etymonica:orichalcum_block"],
+          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"]
+        ],
+        "top": [
+          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
+          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
+          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"]
+        ]
       }
     }
   }

@@ -29,6 +29,9 @@
   "message.etymonica.relink.completed": "Relink complete: %s blocks linked.",
   "message.etymonica.relink.cannot_start": "Cannot relink right now.",
 
+  "message.etymonica.multiblock.formed": "The resonance stabilizes... Multiblock formed!",
+  "message.etymonica.multiblock.failed": "The resonance is unstable. Check the structure above!",
+
   "message.etymonica.link_modifier.success": "Linked successfully.",
   "message.etymonica.link_modifier.unlinked": "Unlinked successfully.",
   "message.etymonica.link_modifier.no_capability": "This machine cannot link blocks.",

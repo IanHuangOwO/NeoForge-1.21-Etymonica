@@ -102,6 +102,24 @@ public class TuningFork extends Item {
         boolean isMachine = clickedState.is(ModBlockTags.ENCHANTING_TABLES) || clickedState.is(ModBlockTags.INFUSION_ALTARS);
 
         if (player != null && player.isCrouching() && isMachine) {
+            BlockEntity be = level.getBlockEntity(clickedPos);
+            
+            // Priority 1: Multiblock formation for Infusion Altars
+            if (be instanceof AbstractInfusionAltarBlockEntity altar) {
+                if (!altar.isFormed()) {
+                    boolean success = altar.checkStructure();
+                    if (success) {
+                        player.displayClientMessage(Component.translatable("message.etymonica.multiblock.formed").withStyle(ChatFormatting.GREEN), true);
+                        return InteractionResult.SUCCESS;
+                    } else {
+                        player.displayClientMessage(Component.translatable("message.etymonica.multiblock.failed").withStyle(ChatFormatting.RED), true);
+                        // If it fails to form, we don't bind yet to keep the feedback clear
+                        return InteractionResult.SUCCESS;
+                    }
+                }
+            }
+
+            // Priority 2: Binding logic (if already formed or not an altar)
             Bound bound = getBound(stack);
             String hereDim = level.dimension().toString();
             boolean alreadyBoundToThisMachine = bound != null && bound.dimId().equals(hereDim) && bound.pos().equals(clickedPos);
@@ -113,7 +131,6 @@ public class TuningFork extends Item {
                 return InteractionResult.SUCCESS;
             }
 
-            BlockEntity be = level.getBlockEntity(clickedPos);
             if (be instanceof AbstractEnchantingTableBlockEntity table) {
                 player.displayClientMessage(EnchantingTableMessages.action(table.beginOrCancelRelinkScan(player)), true);
             }

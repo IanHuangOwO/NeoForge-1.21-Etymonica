@@ -9,12 +9,11 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import org.iansaididontcare.etymonica.Etymonica;
 import org.iansaididontcare.etymonica.registry.infusion.api.EnchantmentTierWeights;
 import org.iansaididontcare.etymonica.registry.infusion.api.InfusionAltarStats;
+import org.iansaididontcare.etymonica.registry.infusion.api.MultiblockStructure;
 
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 public final class InfusionAltarTierLoader {
     private static final Gson GSON = new Gson();
@@ -68,7 +67,18 @@ public final class InfusionAltarTierLoader {
                     );
                 }
 
-                parsed.put(tierId, new InfusionAltarStats(itemsPerInfusion, speed, efficiency, linkRadius, maxLinkedPedestals, weights));
+                MultiblockStructure structure = MultiblockStructure.DEFAULT;
+                if (t.has("multiblock_structure") && t.get("multiblock_structure").isJsonObject()) {
+                    JsonObject s = t.getAsJsonObject("multiblock_structure");
+                    structure = new MultiblockStructure(
+                        getInt(s, "offset_y", 3),
+                        parseLayer(s.getAsJsonArray("bottom")),
+                        parseLayer(s.getAsJsonArray("middle")),
+                        parseLayer(s.getAsJsonArray("top"))
+                    );
+                }
+
+                parsed.put(tierId, new InfusionAltarStats(itemsPerInfusion, speed, efficiency, linkRadius, maxLinkedPedestals, weights, structure));
             }
 
             InfusionAltarData.setAltarTiers(parsed);
@@ -76,6 +86,21 @@ public final class InfusionAltarTierLoader {
         } catch (Exception ex) {
             Etymonica.LOGGER.error("Failed to load {} (keeping previous values).", FILE_ID, ex);
         }
+    }
+
+    private static List<List<String>> parseLayer(com.google.gson.JsonArray array) {
+        if (array == null) return MultiblockStructure.DEFAULT.bottom();
+        List<List<String>> layer = new ArrayList<>();
+        for (JsonElement rowElement : array) {
+            if (rowElement.isJsonArray()) {
+                List<String> row = new ArrayList<>();
+                for (JsonElement cell : rowElement.getAsJsonArray()) {
+                    row.add(cell.getAsString());
+                }
+                layer.add(row);
+            }
+        }
+        return layer;
     }
 
     private static int getInt(JsonObject obj, String key, int def) {

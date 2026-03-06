@@ -5,7 +5,6 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.iansaididontcare.etymonica.block.entity.AbstractInfusionAltarBlockEntity;
 import org.iansaididontcare.etymonica.block.entity.ModBlockEntities;
-import org.iansaididontcare.etymonica.registry.infusion.data.InfusionAltarData;
 
 public class PedestalBlockEntity extends AbstractInfusionAltarBlockEntity {
 

@@ -13,6 +13,7 @@ import org.iansaididontcare.etymonica.block.entity.jar.ZombieBrainInAJarBlockEnt
 import org.iansaididontcare.etymonica.block.entity.infusionaltar.InfusionAltarTier0BlockEntity;
 import org.iansaididontcare.etymonica.block.entity.infusionaltar.InfusionAltarTier1BlockEntity;
 import org.iansaididontcare.etymonica.block.entity.infusionaltar.InfusionAltarTier2BlockEntity;
+import org.iansaididontcare.etymonica.block.entity.infusionaltar.InfusionCoreBlockEntity;
 import org.iansaididontcare.etymonica.block.entity.infusionaltar.PedestalBlockEntity;
 
 import java.util.function.Supplier;
@@ -54,6 +55,11 @@ public class ModBlockEntities {
                 BLOCK_ENTITIES.register("infusion_altar_tier2_be", () -> new BlockEntityType<>(
                         InfusionAltarTier2BlockEntity::new,
                         ModBlocks.INFUSION_ALTAR_TIER2.get()));
+
+        public static final Supplier<BlockEntityType<InfusionCoreBlockEntity>> INFUSION_CORE_BE =
+                BLOCK_ENTITIES.register("infusion_core_be", () -> new BlockEntityType<>(
+                        InfusionCoreBlockEntity::new,
+                        ModBlocks.INFUSION_CORE.get()));
 
         public static final Supplier<BlockEntityType<ZombieBrainInAJarBlockEntity>> BRAIN_IN_A_JAR_BE =
                 BLOCK_ENTITIES.register("brain_in_a_jar_be", () -> new BlockEntityType<>(
