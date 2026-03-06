@@ -48,7 +48,7 @@
         "mystic": 0.0
       },
       "multiblock_structure": {
-        "offset_y": 5,
+        "offset_y": 6,
         "bottom": [
           ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
           ["etymonica:orichalcum_block", "minecraft:glass",            "etymonica:orichalcum_block"],
@@ -56,7 +56,7 @@
         ],
         "middle": [
           ["etymonica:orichalcum_block", "minecraft:glass", "etymonica:orichalcum_block"],
-          ["minecraft:glass",            "etymonica:infusion_core",   "minecraft:glass"],
+          ["minecraft:glass", "", "minecraft:glass"],
           ["etymonica:orichalcum_block", "minecraft:glass", "etymonica:orichalcum_block"]
         ],
         "top": [
@@ -81,20 +81,20 @@
         "mystic": 0.01
       },
       "multiblock_structure": {
-        "offset_y": 5,
+        "offset_y": 6,
         "bottom": [
           ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
-          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
+          ["etymonica:orichalcum_block", "minecraft:glass",            "etymonica:orichalcum_block"],
           ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"]
         ],
         "middle": [
-          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
-          ["etymonica:orichalcum_block", "etymonica:infusion_core", "etymonica:orichalcum_block"],
-          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"]
+          ["etymonica:orichalcum_block", "minecraft:glass", "etymonica:orichalcum_block"],
+          ["minecraft:glass", "", "minecraft:glass"],
+          ["etymonica:orichalcum_block", "minecraft:glass", "etymonica:orichalcum_block"]
         ],
         "top": [
           ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
-          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
+          ["etymonica:orichalcum_block", "minecraft:glass",            "etymonica:orichalcum_block"],
           ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"]
         ]
       }
