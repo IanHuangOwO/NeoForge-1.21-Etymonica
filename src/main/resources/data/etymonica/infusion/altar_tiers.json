@@ -1,102 +1,54 @@
 {
   "altar_tiers": {
     "tier0": {
-      "items_per_infusion": 4,
-      "speed": 0.10,
-      "efficiency": 0.10,
+      "items_per_infusion": 1,
+      "speed": 0.1,
+      "efficiency": 0.0,
       "link_radius": 4,
-      "max_linked_pedestals": 4,
-      "enchantment_weights": {
+      "max_linked_pedestals": 16,
+      "multiblock_radius": 4,
+      "multiblock_block": "minecraft:gold_block",
+      "weights": {
         "common": 0.6,
         "uncommon": 0.3,
         "rare": 0.1,
         "epic": 0.0,
         "legendary": 0.0,
         "mystic": 0.0
-      },
-      "multiblock_structure": {
-        "offset_y": 6,
-        "bottom": [
-          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
-          ["etymonica:orichalcum_block", "minecraft:glass",            "etymonica:orichalcum_block"],
-          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"]
-        ],
-        "middle": [
-          ["etymonica:orichalcum_block", "minecraft:glass", "etymonica:orichalcum_block"],
-          ["minecraft:glass", "", "minecraft:glass"],
-          ["etymonica:orichalcum_block", "minecraft:glass", "etymonica:orichalcum_block"]
-        ],
-        "top": [
-          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
-          ["etymonica:orichalcum_block", "minecraft:glass",            "etymonica:orichalcum_block"],
-          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"]
-        ]
       }
     },
     "tier1": {
-      "items_per_infusion": 8,
-      "speed": 0.30,
-      "efficiency": 0.30,
-      "link_radius": 16,
-      "max_linked_pedestals": 8,
-      "enchantment_weights": {
-        "common": 0.2,
-        "uncommon": 0.3,
-        "rare": 0.3,
-        "epic": 0.09,
-        "legendary": 0.01,
+      "items_per_infusion": 2,
+      "speed": 0.3,
+      "efficiency": 0.1,
+      "link_radius": 6,
+      "max_linked_pedestals": 32,
+      "multiblock_radius": 7,
+      "multiblock_block": "minecraft:gold_block",
+      "weights": {
+        "common": 0.3,
+        "uncommon": 0.4,
+        "rare": 0.2,
+        "epic": 0.08,
+        "legendary": 0.02,
         "mystic": 0.0
-      },
-      "multiblock_structure": {
-        "offset_y": 6,
-        "bottom": [
-          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
-          ["etymonica:orichalcum_block", "minecraft:glass",            "etymonica:orichalcum_block"],
-          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"]
-        ],
-        "middle": [
-          ["etymonica:orichalcum_block", "minecraft:glass", "etymonica:orichalcum_block"],
-          ["minecraft:glass", "", "minecraft:glass"],
-          ["etymonica:orichalcum_block", "minecraft:glass", "etymonica:orichalcum_block"]
-        ],
-        "top": [
-          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
-          ["etymonica:orichalcum_block", "minecraft:glass",            "etymonica:orichalcum_block"],
-          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"]
-        ]
       }
     },
     "tier2": {
-      "items_per_infusion": 16,
-      "speed": 0.50,
-      "efficiency": 0.50,
-      "link_radius": 32,
-      "max_linked_pedestals": 16,
-      "enchantment_weights": {
-        "common": 0.2,
+      "items_per_infusion": 4,
+      "speed": 0.6,
+      "efficiency": 0.25,
+      "link_radius": 8,
+      "max_linked_pedestals": 64,
+      "multiblock_radius": 10,
+      "multiblock_block": "minecraft:gold_block",
+      "weights": {
+        "common": 0.1,
         "uncommon": 0.2,
         "rare": 0.3,
-        "epic": 0.2,
-        "legendary": 0.09,
-        "mystic": 0.01
-      },
-      "multiblock_structure": {
-        "offset_y": 6,
-        "bottom": [
-          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
-          ["etymonica:orichalcum_block", "minecraft:glass",            "etymonica:orichalcum_block"],
-          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"]
-        ],
-        "middle": [
-          ["etymonica:orichalcum_block", "minecraft:glass", "etymonica:orichalcum_block"],
-          ["minecraft:glass", "", "minecraft:glass"],
-          ["etymonica:orichalcum_block", "minecraft:glass", "etymonica:orichalcum_block"]
-        ],
-        "top": [
-          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"],
-          ["etymonica:orichalcum_block", "minecraft:glass",            "etymonica:orichalcum_block"],
-          ["etymonica:orichalcum_block", "etymonica:orichalcum_block", "etymonica:orichalcum_block"]
-        ]
+        "epic": 0.25,
+        "legendary": 0.1,
+        "mystic": 0.05
       }
     }
   }

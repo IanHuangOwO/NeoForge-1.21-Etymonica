@@ -1,16 +1,17 @@
 package org.iansaididontcare.etymonica.block.entity;
 
+import net.minecraft.ChatFormatting;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.Packet;
 import net.minecraft.network.protocol.game.ClientGamePacketListener;
 import net.minecraft.network.protocol.game.ClientboundBlockEntityDataPacket;
 import net.minecraft.resources.Identifier;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
-import net.minecraft.util.RandomSource;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
@@ -24,24 +25,14 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
+import net.minecraft.world.phys.AABB;
 import net.neoforged.neoforge.items.ItemStackHandler;
 import org.iansaididontcare.etymonica.block.custom.AbstractInfusionAltarBlock;
-import org.iansaididontcare.etymonica.registry.infusion.api.AltarActionResult;
 import org.iansaididontcare.etymonica.registry.infusion.api.InfusionAltarStats;
-import org.iansaididontcare.etymonica.registry.infusion.api.MultiblockStructure;
 import org.iansaididontcare.etymonica.registry.infusion.data.InfusionAltarData;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.ArrayList;
-import java.util.List;
-
 public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
-    public static final int TICKS_PER_ITEM = 200;
-
-    public enum Mode {
-        IDLE,
-        INFUSE
-    }
 
     // --- Multiblock State ---
     private boolean isFormed = false;
@@ -60,13 +51,6 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
             }
         }
     };
-
-    // --- Enchantment State ---
-    private Mode mode = Mode.IDLE;
-    private int progress = 0;
-    private int maxProgress = 0;
-    private final List<ItemStack> resultsBuffer = new ArrayList<>();
-    private final List<ItemStack> popBuffer = new ArrayList<>();
 
     public ItemStackHandler getInventory() {
         return this.inventory;
@@ -92,9 +76,6 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
     // --- Interaction Logic ---
     public InteractionResult handleInteraction(Player player, InteractionHand hand, ItemStack stack) {
         if (level == null) return InteractionResult.PASS;
-        
-        // Only allow interactions if formed
-        if (!isFormed) return InteractionResult.PASS;
 
         ItemStackHandler inv = getInventory();
         ItemStack inSlot = inv.getStackInSlot(0);
@@ -132,120 +113,75 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         return InteractionResult.PASS;
     }
 
-    private void processOneItem(Level level) {
-        if (resultsBuffer.isEmpty()) return;
-        
-        // Core functionality removed - logic needs refactoring if infusion is to be kept
-        resultsBuffer.clear();
-    }
-
-    private void finishInfusion(Level level) {
-        // Core functionality removed
-        popBuffer.clear();
-        level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
-    }
-
-    public AltarActionResult attemptStartInfusion(Player player) {
-        if (level == null || level.isClientSide() || mode != Mode.IDLE || !isFormed) return AltarActionResult.INFUSE_BLOCKED;
-
-        // Core functionality removed - logic needs refactoring if infusion is to be kept
-        return AltarActionResult.INFUSE_BLOCKED;
-    }
-
-    public boolean checkStructure() {
-        if (level == null) return false;
-        boolean formedNow = verifyStructure(level, worldPosition);
-        setFormed(formedNow);
-        return formedNow;
-    }
-
-    private boolean verifyStructure(Level level, BlockPos center) {
-        String tierId = getTierIdFromState(level, getBlockState());
-        InfusionAltarStats stats = InfusionAltarData.getAltarTier(tierId);
-        MultiblockStructure struct = stats.multiblockStructure();
-
-        BlockPos cubeBottomCenter = center.above(struct.offsetY());
-
-        if (!checkLayer(level, cubeBottomCenter, struct.bottom())) return false;
-        if (!checkLayer(level, cubeBottomCenter.above(), struct.middle())) return false;
-        if (!checkLayer(level, cubeBottomCenter.above(2), struct.top())) return false;
-
-        return true;
-    }
-
-    private boolean checkLayer(Level level, BlockPos layerCenter, List<List<String>> layerData) {
-        for (int row = 0; row < 3; row++) {
-            List<String> rowData = layerData.get(row);
-            for (int col = 0; col < 3; col++) {
-                String expectedBlockId = rowData.get(col);
-                if (expectedBlockId.isEmpty()) continue;
-
-                int dx = row - 1;
-                int dz = col - 1;
-                BlockPos targetPos = layerCenter.offset(dx, 0, dz);
-                if (targetPos.equals(worldPosition)) continue;
-
-                BlockState state = level.getBlockState(targetPos);
-                Identifier expectedId = Identifier.parse(expectedBlockId);
-                Identifier actualId = level.registryAccess().lookupOrThrow(Registries.BLOCK).getKey(state.getBlock());
-
-                if (actualId == null || !actualId.equals(expectedId)) return false;
-            }
-        }
-        return true;
-    }
-
-    private void setFormed(boolean formed) {
-        if (this.isFormed != formed) {
-            this.isFormed = formed;
-            if (level != null && !level.isClientSide()) {
-                if (!formed) {
-                    mode = Mode.IDLE;
-                    progress = 0;
-                    resultsBuffer.clear();
-                    popBuffer.clear();
-                }
-
-                BlockState state = level.getBlockState(worldPosition);
-                if (state.hasProperty(AbstractInfusionAltarBlock.FORMED)) {
-                    level.setBlock(worldPosition, state.setValue(AbstractInfusionAltarBlock.FORMED, formed), 3);
-                }
-                setChanged();
-                level.sendBlockUpdated(worldPosition, state, state, 3);
-            }
-        }
-    }
-
     public void tickServer(Level level, BlockPos pos, BlockState state) {
         if (recomputeCooldownTicks-- <= 0) {
             recomputeCooldownTicks = 20;
             recomputeStatsNow(level, state);
         }
 
-        if (isFormed && structureCheckCooldown-- <= 0) {
-            structureCheckCooldown = 40;
-            if (!verifyStructure(level, pos)) {
-                setFormed(false);
-            }
+        if (structureCheckCooldown-- <= 0) {
+            structureCheckCooldown = 20;
+            checkStructure(level, pos, state);
         }
+    }
 
-        if (isFormed && mode == Mode.INFUSE) {
-            progress++;
-            if (progress >= maxProgress) {
-                processOneItem(level);
-                if (resultsBuffer.isEmpty()) {
-                    finishInfusion(level);
-                    mode = Mode.IDLE;
-                    progress = 0;
-                } else {
-                    progress = 0;
-                    String tierId = getTierIdFromState(level, state);
-                    InfusionAltarStats stats = InfusionAltarData.getAltarTier(tierId);
-                    maxProgress = (int) Math.round(TICKS_PER_ITEM / (1.0 + stats.speed()));
+    private void checkStructure(Level level, BlockPos pos, BlockState state) {
+        String tierId = getTierIdFromState(level, state);
+        InfusionAltarStats stats = InfusionAltarData.getAltarTier(tierId);
+        int r = stats.multiblockRadius();
+        Identifier requiredBlockId = stats.multiblockBlock();
+        
+        boolean currentlyFormed = true;
+
+        // Check 3 Euclidean rings: XZ (horizontal), XY (vertical), YZ (vertical)
+        for (int i = -r; i <= r; i++) {
+            for (int j = -r; j <= r; j++) {
+                if (Math.round(Math.sqrt(i * i + j * j)) == r) {
+                    // XZ Plane (belt)
+                    if (!isBlockCorrect(level, pos.offset(i, 0, j), requiredBlockId)) { currentlyFormed = false; break; }
+                    // XY Plane
+                    if (!isBlockCorrect(level, pos.offset(i, j, 0), requiredBlockId)) { currentlyFormed = false; break; }
+                    // YZ Plane
+                    if (!isBlockCorrect(level, pos.offset(0, i, j), requiredBlockId)) { currentlyFormed = false; break; }
                 }
             }
-            setChanged();
+            if (!currentlyFormed) break;
         }
+
+        if (currentlyFormed != this.isFormed) {
+            this.isFormed = currentlyFormed;
+            
+            // Update BlockState
+            if (state.hasProperty(AbstractInfusionAltarBlock.FORMED)) {
+                level.setBlock(pos, state.setValue(AbstractInfusionAltarBlock.FORMED, isFormed), 3);
+            }
+
+            // Message nearby players
+            String msgKey = isFormed ? "message.etymonica.multiblock.formed" : "message.etymonica.multiblock.failed";
+            Component msg = Component.translatable(msgKey).withStyle(isFormed ? ChatFormatting.GREEN : ChatFormatting.RED);
+            
+            AABB searchBox = new AABB(pos).inflate(8);
+            level.getEntitiesOfClass(Player.class, searchBox, player -> player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) < 64)
+                 .forEach(player -> player.displayClientMessage(msg, true));
+
+            if (isFormed) {
+                level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1f, 1f);
+            } else {
+                level.playSound(null, pos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 1f, 1f);
+            }
+
+            setChanged();
+            level.sendBlockUpdated(pos, state, state, 3);
+        }
+    }
+
+    private boolean isBlockCorrect(Level level, BlockPos target, Identifier expectedId) {
+        // Skip the altar itself if it happens to be on a ring point (unlikely with r > 0)
+        if (target.equals(worldPosition)) return true;
+        
+        BlockState state = level.getBlockState(target);
+        Identifier actualId = level.registryAccess().lookupOrThrow(Registries.BLOCK).getKey(state.getBlock());
+        return actualId != null && actualId.equals(expectedId);
     }
 
     private void recomputeStatsNow(Level level, BlockState state) {
@@ -274,7 +210,6 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
 
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
-        if (isFormed) setFormed(false);
         SimpleContainer inv = new SimpleContainer(inventory.getSlots());
         for(int i = 0; i < inventory.getSlots(); i++) inv.setItem(i, inventory.getStackInSlot(i));
         if (this.level != null) Containers.dropContents(this.level, this.worldPosition, inv);
@@ -286,11 +221,6 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         super.saveAdditional(output);
         output.putBoolean("infusion_altar.is_formed", isFormed);
         inventory.serialize(output);
-        output.store("infusion_altar.results_buffer", ItemStack.CODEC.listOf(), resultsBuffer);
-        output.store("infusion_altar.pop_buffer", ItemStack.CODEC.listOf(), popBuffer);
-        output.putInt("infusion_altar.progress", progress);
-        output.putInt("infusion_altar.max_progress", maxProgress);
-        output.putInt("infusion_altar.mode", mode.ordinal());
     }
 
     @Override
@@ -298,14 +228,6 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         super.loadAdditional(input);
         isFormed = input.getBooleanOr("infusion_altar.is_formed", false);
         inventory.deserialize(input);
-        resultsBuffer.clear();
-        input.read("infusion_altar.results_buffer", ItemStack.CODEC.listOf()).ifPresent(resultsBuffer::addAll);
-        popBuffer.clear();
-        input.read("infusion_altar.pop_buffer", ItemStack.CODEC.listOf()).ifPresent(popBuffer::addAll);
-        progress = input.getIntOr("infusion_altar.progress", 0);
-        maxProgress = input.getIntOr("infusion_altar.max_progress", 0);
-        int modeIdx = input.getIntOr("infusion_altar.mode", 0);
-        mode = Mode.values()[modeIdx % Mode.values().length];
         if (this.level != null && !this.level.isClientSide()) {
             statsDirty = true;
         }

@@ -8,10 +8,7 @@ import net.minecraft.world.item.context.UseOnContext;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.entity.BlockEntity;
 import org.iansaididontcare.etymonica.block.entity.AbstractEnchantingTableBlockEntity;
-import org.iansaididontcare.etymonica.block.entity.AbstractInfusionAltarBlockEntity;
-import org.iansaididontcare.etymonica.registry.enchantment.api.EnchantmentRarity;
 import org.iansaididontcare.etymonica.registry.enchanting.EnchantingTableMessages;
-import org.iansaididontcare.etymonica.registry.infusion.InfusionAltarMessages;
 import org.iansaididontcare.etymonica.tag.ModBlockTags;
 
 public class Quill extends Item {
@@ -37,16 +34,6 @@ public class Quill extends Item {
             if (level.isClientSide()) return InteractionResult.SUCCESS;
             if (be instanceof AbstractEnchantingTableBlockEntity table) {
                 player.displayClientMessage(EnchantingTableMessages.action(table.requestStartEnchanting()), true);
-                return InteractionResult.SUCCESS;
-            }
-        }
-
-        // Handle Infusion Altars
-        if (level.getBlockState(pos).is(ModBlockTags.INFUSION_ALTARS)) {
-            if (level.isClientSide()) return InteractionResult.SUCCESS;
-            if (be instanceof AbstractInfusionAltarBlockEntity altar) {
-                var result = altar.attemptStartInfusion(player);
-                player.displayClientMessage(InfusionAltarMessages.action(result), true);
                 return InteractionResult.SUCCESS;
             }
         }

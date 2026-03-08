@@ -9,16 +9,16 @@ import net.minecraft.server.packs.resources.ResourceManager;
 import org.iansaididontcare.etymonica.Etymonica;
 import org.iansaididontcare.etymonica.registry.infusion.api.EnchantmentTierWeights;
 import org.iansaididontcare.etymonica.registry.infusion.api.InfusionAltarStats;
-import org.iansaididontcare.etymonica.registry.infusion.api.MultiblockStructure;
 
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 public final class InfusionAltarTierLoader {
     private static final Gson GSON = new Gson();
-    private static final Identifier FILE_ID =
-            Identifier.parse(Etymonica.MOD_ID + ":infusion/altar_tiers.json");
+    private static final Identifier FILE_ID = Identifier.parse(Etymonica.MOD_ID + ":infusion/altar_tiers.json");
 
     private InfusionAltarTierLoader() {}
 
@@ -27,7 +27,7 @@ public final class InfusionAltarTierLoader {
 
         Optional<Resource> resourceOpt = resourceManager.getResource(FILE_ID);
         if (resourceOpt.isEmpty()) {
-            Etymonica.LOGGER.warn("Missing {}, using default infusion altar stats.", FILE_ID);
+            Etymonica.LOGGER.warn("Missing {}, using empty tier stats.", FILE_ID);
             InfusionAltarData.setAltarTiers(Map.of());
             return;
         }
@@ -46,6 +46,7 @@ public final class InfusionAltarTierLoader {
             for (Map.Entry<String, JsonElement> e : tiersObj.entrySet()) {
                 String tierId = e.getKey();
                 if (!e.getValue().isJsonObject()) continue;
+
                 JsonObject t = e.getValue().getAsJsonObject();
 
                 int itemsPerInfusion = getInt(t, "items_per_infusion", 1);
@@ -55,61 +56,43 @@ public final class InfusionAltarTierLoader {
                 int maxLinkedPedestals = getInt(t, "max_linked_pedestals", 16);
 
                 EnchantmentTierWeights weights = EnchantmentTierWeights.DEFAULT;
-                if (t.has("enchantment_weights") && t.get("enchantment_weights").isJsonObject()) {
-                    JsonObject w = t.getAsJsonObject("enchantment_weights");
+                if (t.has("weights") && t.get("weights").isJsonObject()) {
+                    JsonObject w = t.getAsJsonObject("weights");
                     weights = new EnchantmentTierWeights(
-                        getDouble(w, "common", 0.6),
+                        getDouble(w, "common", 0.5),
                         getDouble(w, "uncommon", 0.3),
-                        getDouble(w, "rare", 0.1),
-                        getDouble(w, "epic", 0.0),
-                        getDouble(w, "legendary", 0.0),
+                        getDouble(w, "rare", 0.15),
+                        getDouble(w, "epic", 0.04),
+                        getDouble(w, "legendary", 0.01),
                         getDouble(w, "mystic", 0.0)
                     );
                 }
 
-                MultiblockStructure structure = MultiblockStructure.DEFAULT;
-                if (t.has("multiblock_structure") && t.get("multiblock_structure").isJsonObject()) {
-                    JsonObject s = t.getAsJsonObject("multiblock_structure");
-                    structure = new MultiblockStructure(
-                        getInt(s, "offset_y", 3),
-                        parseLayer(s.getAsJsonArray("bottom")),
-                        parseLayer(s.getAsJsonArray("middle")),
-                        parseLayer(s.getAsJsonArray("top"))
-                    );
-                }
+                int multiblockRadius = getInt(t, "multiblock_radius", 3);
+                Identifier multiblockBlock = Identifier.parse(getString(t, "multiblock_block", "minecraft:gold_block"));
 
-                parsed.put(tierId, new InfusionAltarStats(itemsPerInfusion, speed, efficiency, linkRadius, maxLinkedPedestals, weights, structure));
+                parsed.put(tierId, new InfusionAltarStats(
+                    itemsPerInfusion, speed, efficiency, linkRadius, maxLinkedPedestals, 
+                    weights, multiblockRadius, multiblockBlock
+                ));
             }
 
             InfusionAltarData.setAltarTiers(parsed);
-            Etymonica.LOGGER.info("Loaded {} infusion altar tiers from {}", parsed.size(), FILE_ID);
+            Etymonica.LOGGER.info("Loaded altar tiers: {}", parsed.keySet());
         } catch (Exception ex) {
             Etymonica.LOGGER.error("Failed to load {} (keeping previous values).", FILE_ID, ex);
         }
     }
 
-    private static List<List<String>> parseLayer(com.google.gson.JsonArray array) {
-        if (array == null) return MultiblockStructure.DEFAULT.bottom();
-        List<List<String>> layer = new ArrayList<>();
-        for (JsonElement rowElement : array) {
-            if (rowElement.isJsonArray()) {
-                List<String> row = new ArrayList<>();
-                for (JsonElement cell : rowElement.getAsJsonArray()) {
-                    row.add(cell.getAsString());
-                }
-                layer.add(row);
-            }
-        }
-        return layer;
+    private static int getInt(JsonObject json, String key, int def) {
+        return json.has(key) ? json.get(key).getAsInt() : def;
     }
 
-    private static int getInt(JsonObject obj, String key, int def) {
-        JsonElement e = obj.get(key);
-        return (e != null && e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber()) ? e.getAsInt() : def;
+    private static double getDouble(JsonObject json, String key, double def) {
+        return json.has(key) ? json.get(key).getAsDouble() : def;
     }
 
-    private static double getDouble(JsonObject obj, String key, double def) {
-        JsonElement e = obj.get(key);
-        return (e != null && e.isJsonPrimitive() && e.getAsJsonPrimitive().isNumber()) ? e.getAsDouble() : def;
+    private static String getString(JsonObject json, String key, String def) {
+        return json.has(key) ? json.get(key).getAsString() : def;
     }
 }

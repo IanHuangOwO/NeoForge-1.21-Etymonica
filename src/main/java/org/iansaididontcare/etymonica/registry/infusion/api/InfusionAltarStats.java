@@ -1,5 +1,7 @@
 package org.iansaididontcare.etymonica.registry.infusion.api;
 
+import net.minecraft.resources.Identifier;
+
 public record InfusionAltarStats(
     int itemsPerInfusion,
     double speed,
@@ -7,7 +9,12 @@ public record InfusionAltarStats(
     int linkRadius,
     int maxLinkedPedestals,
     EnchantmentTierWeights weights,
-    MultiblockStructure multiblockStructure
+    int multiblockRadius,
+    Identifier multiblockBlock
 ) {
-    public static final InfusionAltarStats DEFAULT = new InfusionAltarStats(1, 0.1, 0.0, 4, 16, EnchantmentTierWeights.DEFAULT, MultiblockStructure.DEFAULT);
+    public static final InfusionAltarStats DEFAULT = new InfusionAltarStats(
+            1, 0.1, 0.0, 4, 16, 
+            EnchantmentTierWeights.DEFAULT, 
+            3, Identifier.parse("minecraft:gold_block")
+    );
 }

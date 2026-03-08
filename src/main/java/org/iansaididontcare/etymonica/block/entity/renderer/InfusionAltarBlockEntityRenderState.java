@@ -4,6 +4,7 @@ import net.minecraft.client.renderer.blockentity.state.BlockEntityRenderState;
 import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
+import net.minecraft.world.level.block.state.BlockState;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,6 +13,11 @@ public class InfusionAltarBlockEntityRenderState extends BlockEntityRenderState 
     public Level blockEntityLevel;
     public float rotation;
     public long gameTime;
+
+    // Multiblock preview info
+    public boolean isFormed;
+    public int multiblockRadius;
+    public BlockState multiblockBlock;
 
     // Use a list of render states for multiple items
     public final List<ItemStackRenderState> itemStates = new ArrayList<>();
