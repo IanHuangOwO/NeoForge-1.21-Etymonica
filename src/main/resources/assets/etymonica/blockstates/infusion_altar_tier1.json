@@ -1,0 +1,11 @@
+{
+  "variants": {
+    "formed=false": {
+      "model": "minecraft:block/enchanting_table"
+    },
+    "formed=true": {
+      "model": "minecraft:block/enchanting_table"
+    }
+  }
+}
+

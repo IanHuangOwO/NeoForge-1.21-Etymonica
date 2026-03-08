@@ -5,8 +5,6 @@ import net.minecraft.client.renderer.item.ItemStackRenderState;
 import net.minecraft.core.BlockPos;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.state.BlockState;
-import java.util.ArrayList;
-import java.util.List;
 
 public class InfusionAltarBlockEntityRenderState extends BlockEntityRenderState {
     public BlockPos lightPosition;
@@ -14,20 +12,14 @@ public class InfusionAltarBlockEntityRenderState extends BlockEntityRenderState 
     public float rotation;
     public long gameTime;
 
+    // Altar state for the giant model
+    public BlockState altarBlock;
+
     // Multiblock preview info
     public boolean isFormed;
     public int multiblockRadius;
     public BlockState multiblockBlock;
 
-    // Use a list of render states for multiple items
-    public final List<ItemStackRenderState> itemStates = new ArrayList<>();
-
-    public InfusionAltarBlockEntityRenderState() {
-        // Pre-fill some states to avoid constant allocation
-        for (int i = 0; i < 16; i++) {
-            itemStates.add(new ItemStackRenderState());
-        }
-    }
-    
-    public int activeCount = 0;
+    public final ItemStackRenderState itemState = new ItemStackRenderState();
+    public boolean hasItem = false;
 }

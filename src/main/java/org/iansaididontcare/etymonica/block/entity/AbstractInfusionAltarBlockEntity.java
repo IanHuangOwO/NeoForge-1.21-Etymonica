@@ -26,17 +26,24 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.minecraft.world.phys.AABB;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.neoforged.neoforge.items.ItemStackHandler;
+import org.iansaididontcare.etymonica.block.ModBlocks;
 import org.iansaididontcare.etymonica.block.custom.AbstractInfusionAltarBlock;
+import org.iansaididontcare.etymonica.block.entity.infusionaltar.AltarPartBlockEntity;
 import org.iansaididontcare.etymonica.registry.infusion.api.InfusionAltarStats;
 import org.iansaididontcare.etymonica.registry.infusion.data.InfusionAltarData;
 import org.jetbrains.annotations.Nullable;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
 
     // --- Multiblock State ---
     private boolean isFormed = false;
     private int structureCheckCooldown = 0;
+    private final List<BlockPos> partPositions = new ArrayList<>();
 
     public boolean isFormed() {
         return isFormed;
@@ -80,8 +87,11 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         ItemStackHandler inv = getInventory();
         ItemStack inSlot = inv.getStackInSlot(0);
 
-        // 1. If holding an item, try to insert it
         if (!stack.isEmpty()) {
+            if (!isFormed) {
+                return InteractionResult.FAIL;
+            }
+
             if (!level.isClientSide()) {
                 ItemStack toInsert = stack.copyWithCount(1);
                 ItemStack remainder = inv.insertItem(0, toInsert, false);
@@ -93,8 +103,6 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
             }
             return InteractionResult.SUCCESS;
         } 
-        
-        // 2. If hand is empty, try to extract the item
         else if (hand == InteractionHand.MAIN_HAND) {
             if (!inSlot.isEmpty()) {
                 if (!level.isClientSide()) {
@@ -121,67 +129,115 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
 
         if (structureCheckCooldown-- <= 0) {
             structureCheckCooldown = 20;
-            checkStructure(level, pos, state);
+            if (!isFormed) {
+                checkStructureAndForm(level, pos, state);
+            }
         }
     }
 
-    private void checkStructure(Level level, BlockPos pos, BlockState state) {
+    private void checkStructureAndForm(Level level, BlockPos pos, BlockState state) {
         String tierId = getTierIdFromState(level, state);
         InfusionAltarStats stats = InfusionAltarData.getAltarTier(tierId);
         int r = stats.multiblockRadius();
         Identifier requiredBlockId = stats.multiblockBlock();
         
-        boolean currentlyFormed = true;
+        List<BlockPos> ringPositions = new ArrayList<>();
 
-        // Check 3 Euclidean rings: XZ (horizontal), XY (vertical), YZ (vertical)
         for (int i = -r; i <= r; i++) {
             for (int j = -r; j <= r; j++) {
                 if (Math.round(Math.sqrt(i * i + j * j)) == r) {
-                    // XZ Plane (belt)
-                    if (!isBlockCorrect(level, pos.offset(i, 0, j), requiredBlockId)) { currentlyFormed = false; break; }
-                    // XY Plane
-                    if (!isBlockCorrect(level, pos.offset(i, j, 0), requiredBlockId)) { currentlyFormed = false; break; }
-                    // YZ Plane
-                    if (!isBlockCorrect(level, pos.offset(0, i, j), requiredBlockId)) { currentlyFormed = false; break; }
+                    ringPositions.add(pos.offset(i, 0, j)); // XZ
+                    ringPositions.add(pos.offset(i, j, 0)); // XY
+                    ringPositions.add(pos.offset(0, i, j)); // YZ
                 }
             }
-            if (!currentlyFormed) break;
         }
 
-        if (currentlyFormed != this.isFormed) {
-            this.isFormed = currentlyFormed;
+        for (BlockPos p : ringPositions) {
+            if (p.equals(pos)) continue;
+            if (!isBlockCorrect(level, p, requiredBlockId)) return;
+        }
+
+        // All blocks correct, form the multiblock
+        form(level, pos, state, ringPositions, requiredBlockId);
+    }
+
+    private void form(Level level, BlockPos pos, BlockState state, List<BlockPos> ringPositions, Identifier originalBlockId) {
+        this.isFormed = true;
+        this.partPositions.clear();
+
+        for (BlockPos p : ringPositions) {
+            if (p.equals(pos)) continue;
             
-            // Update BlockState
-            if (state.hasProperty(AbstractInfusionAltarBlock.FORMED)) {
-                level.setBlock(pos, state.setValue(AbstractInfusionAltarBlock.FORMED, isFormed), 3);
+            level.setBlock(p, ModBlocks.ALTAR_PART_BLOCK.get().defaultBlockState(), 3);
+            if (level.getBlockEntity(p) instanceof AltarPartBlockEntity part) {
+                part.setMetadata(pos, originalBlockId);
+                this.partPositions.add(p.immutable());
             }
+        }
 
-            // Message nearby players
-            String msgKey = isFormed ? "message.etymonica.multiblock.formed" : "message.etymonica.multiblock.failed";
-            Component msg = Component.translatable(msgKey).withStyle(isFormed ? ChatFormatting.GREEN : ChatFormatting.RED);
-            
-            AABB searchBox = new AABB(pos).inflate(8);
-            level.getEntitiesOfClass(Player.class, searchBox, player -> player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) < 64)
-                 .forEach(player -> player.displayClientMessage(msg, true));
+        // Feedback
+        notifyStateChange(level, pos, state, true);
+    }
 
-            if (isFormed) {
-                level.playSound(null, pos, SoundEvents.BEACON_ACTIVATE, SoundSource.BLOCKS, 1f, 1f);
-            } else {
-                level.playSound(null, pos, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 1f, 1f);
+    public void unform() {
+        unform(false);
+    }
+
+    public void unform(boolean isRemovingMaster) {
+        if (!isFormed || level == null || level.isClientSide()) return;
+
+        this.isFormed = false;
+        String tierId = getTierIdFromState(level, getBlockState());
+        InfusionAltarStats stats = InfusionAltarData.getAltarTier(tierId);
+        Block originalBlock = BuiltInRegistries.BLOCK.get(stats.multiblockBlock())
+                .orElseThrow(() -> new IllegalStateException("Block not found: " + stats.multiblockBlock()))
+                .value();
+
+        for (BlockPos p : partPositions) {
+            if (p.equals(worldPosition)) continue;
+
+            if (level.getBlockState(p).is(ModBlocks.ALTAR_PART_BLOCK.get())) {
+                if (level.getBlockEntity(p) instanceof AltarPartBlockEntity part) {
+                    part.setReverting(true);
+                }
+                level.setBlock(p, originalBlock.defaultBlockState(), 3);
             }
+        }
+        
+        this.partPositions.clear();
 
-            setChanged();
-            level.sendBlockUpdated(pos, state, state, 3);
+        // Only update the altar's blockstate if we aren't currently breaking the altar
+        if (!isRemovingMaster) {
+            notifyStateChange(level, worldPosition, getBlockState(), false);
+        } else {
+            // If removing, just play the sound and send message without level.setBlock
+            level.playSound(null, worldPosition, SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 1f, 1f);
         }
     }
 
-    private boolean isBlockCorrect(Level level, BlockPos target, Identifier expectedId) {
-        // Skip the altar itself if it happens to be on a ring point (unlikely with r > 0)
-        if (target.equals(worldPosition)) return true;
+    private void notifyStateChange(Level level, BlockPos pos, BlockState state, boolean formed) {
+        if (state.hasProperty(AbstractInfusionAltarBlock.FORMED)) {
+            level.setBlock(pos, state.setValue(AbstractInfusionAltarBlock.FORMED, formed), 3);
+        }
+
+        String msgKey = formed ? "message.etymonica.multiblock.formed" : "message.etymonica.multiblock.failed";
+        Component msg = Component.translatable(msgKey).withStyle(formed ? ChatFormatting.GREEN : ChatFormatting.RED);
         
+        AABB searchBox = new AABB(pos).inflate(8);
+        level.getEntitiesOfClass(Player.class, searchBox, player -> player.distanceToSqr(pos.getX() + 0.5, pos.getY() + 0.5, pos.getZ() + 0.5) < 64)
+             .forEach(player -> player.displayClientMessage(msg, true));
+
+        level.playSound(null, pos, formed ? SoundEvents.BEACON_ACTIVATE : SoundEvents.BEACON_DEACTIVATE, SoundSource.BLOCKS, 1f, 1f);
+
+        setChanged();
+        level.sendBlockUpdated(pos, state, state, 3);
+    }
+
+    private boolean isBlockCorrect(Level level, BlockPos target, Identifier expectedId) {
         BlockState state = level.getBlockState(target);
-        Identifier actualId = level.registryAccess().lookupOrThrow(Registries.BLOCK).getKey(state.getBlock());
-        return actualId != null && actualId.equals(expectedId);
+        Identifier actualId = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+        return actualId.equals(expectedId);
     }
 
     private void recomputeStatsNow(Level level, BlockState state) {
@@ -197,19 +253,19 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         statsDirty = false;
     }
 
-    protected final Identifier blockId(Level level, Block block) {
-        return level.registryAccess().lookupOrThrow(Registries.BLOCK).getKey(block);
-    }
-
     private String getTierIdFromState(Level level, BlockState state) {
-        Identifier id = blockId(level, state.getBlock());
-        String path = id.getPath();
-        if (path.startsWith("infusion_altar_")) return path.substring("infusion_altar_".length());
+        Identifier id = BuiltInRegistries.BLOCK.getKey(state.getBlock());
+        String path = id.getPath(); // e.g., "infusion_altar_tier1"
+        if (path.startsWith("infusion_altar_")) {
+            return path.substring("infusion_altar_".length()); // returns "tier1"
+        }
         return "tier0";
     }
 
+
     @Override
     public void preRemoveSideEffects(BlockPos pos, BlockState state) {
+        if (isFormed) unform(true);
         SimpleContainer inv = new SimpleContainer(inventory.getSlots());
         for(int i = 0; i < inventory.getSlots(); i++) inv.setItem(i, inventory.getStackInSlot(i));
         if (this.level != null) Containers.dropContents(this.level, this.worldPosition, inv);
@@ -221,6 +277,7 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         super.saveAdditional(output);
         output.putBoolean("infusion_altar.is_formed", isFormed);
         inventory.serialize(output);
+        output.store("infusion_altar.parts", BlockPos.CODEC.listOf(), partPositions);
     }
 
     @Override
@@ -228,6 +285,8 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         super.loadAdditional(input);
         isFormed = input.getBooleanOr("infusion_altar.is_formed", false);
         inventory.deserialize(input);
+        partPositions.clear();
+        input.read("infusion_altar.parts", BlockPos.CODEC.listOf()).ifPresent(partPositions::addAll);
         if (this.level != null && !this.level.isClientSide()) {
             statsDirty = true;
         }

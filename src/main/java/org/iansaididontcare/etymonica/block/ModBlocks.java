@@ -63,6 +63,12 @@ public class ModBlocks {
                         .strength(4.5f)
                         .sound(SoundType.STONE)));
 
+        public static final DeferredBlock<Block> ALTAR_PART_BLOCK = registerBlock("altar_part_block",
+                (properties) -> new org.iansaididontcare.etymonica.block.custom.infusionaltar.AltarPartBlock(properties
+                        .strength(2.0f)
+                        .noOcclusion()
+                        .noLootTable()));
+
         public static final DeferredBlock<Block> BRAIN_IN_A_JAR = registerBlock("brain_in_a_jar",
                 properties -> new ZombieBrainInAJarBlock(properties
                         .strength(2.0f)

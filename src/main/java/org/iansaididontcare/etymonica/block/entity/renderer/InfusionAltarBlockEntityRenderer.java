@@ -18,6 +18,7 @@ import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.LightLayer;
 import net.minecraft.world.level.block.state.BlockState;
+import org.iansaididontcare.etymonica.block.custom.AbstractInfusionAltarBlock;
 import net.minecraft.world.phys.Vec3;
 import org.iansaididontcare.etymonica.registry.infusion.api.InfusionAltarStats;
 import org.iansaididontcare.etymonica.registry.infusion.data.InfusionAltarData;
@@ -26,14 +27,7 @@ import org.jetbrains.annotations.Nullable;
 public class InfusionAltarBlockEntityRenderer implements BlockEntityRenderer<AbstractInfusionAltarBlockEntity, InfusionAltarBlockEntityRenderState> {
     private final ItemModelResolver itemModelResolver;
 
-    // Controls for the orbital display
-    private static final float ORBIT_HEIGHT = 1.5f;
-    private static final float ORBIT_RADIUS = 1.5f;
-    private static final float WAVE_AMPLITUDE_Y = 0.2f;
-    private static final float WAVE_SPEED = 0.1f;
     private static final float SELF_ROTATION_SPEED = 1f;
-
-    private static final int MAX_VISIBLE_ITEMS = 16;
 
     public InfusionAltarBlockEntityRenderer(BlockEntityRendererProvider.Context context) {
         itemModelResolver = context.itemModelResolver();
@@ -54,10 +48,14 @@ public class InfusionAltarBlockEntityRenderer implements BlockEntityRenderer<Abs
         renderState.rotation = blockEntity.getRenderingRotation();
         renderState.gameTime = blockEntity.getLevel() != null ? blockEntity.getLevel().getGameTime() : 0;
 
-        // Multiblock preview data
         renderState.isFormed = blockEntity.isFormed();
+        BlockState blockState = blockEntity.getBlockState();
+        if (blockState.hasProperty(AbstractInfusionAltarBlock.FORMED)) {
+            renderState.altarBlock = blockState.setValue(AbstractInfusionAltarBlock.FORMED, false);
+        } else {
+            renderState.altarBlock = blockState;
+        }
         
-        // Extract tier stats for preview
         String tierId = getTierIdFromBlock(blockEntity.getBlockState());
         InfusionAltarStats stats = InfusionAltarData.getAltarTier(tierId);
         renderState.multiblockRadius = stats.multiblockRadius();
@@ -65,21 +63,18 @@ public class InfusionAltarBlockEntityRenderer implements BlockEntityRenderer<Abs
                 .orElseThrow(() -> new IllegalStateException("Block not found: " + stats.multiblockBlock()))
                 .value().defaultBlockState();
 
-        int stateIdx = 0;
-        // Collect items from all slots, up to MAX_VISIBLE_ITEMS
-        for (int slot = 0; slot < blockEntity.getInventory().getSlots() && stateIdx < MAX_VISIBLE_ITEMS; slot++) {
-            ItemStack stack = blockEntity.getInventory().getStackInSlot(slot);
-            if (stack.isEmpty()) continue;
-
-            int countToShow = Math.min(stack.getCount(), MAX_VISIBLE_ITEMS - stateIdx);
-            
-            for (int i = 0; i < countToShow; i++) {
-                itemModelResolver.updateForTopItem(renderState.itemStates.get(stateIdx),
-                        stack, ItemDisplayContext.FIXED, blockEntity.getLevel(), null, stateIdx);
-                stateIdx++;
-            }
+        ItemStack stack = blockEntity.getInventory().getStackInSlot(0);
+        renderState.hasItem = !stack.isEmpty();
+        if (renderState.hasItem) {
+            itemModelResolver.updateForTopItem(
+                    renderState.itemState,
+                    stack,
+                    ItemDisplayContext.FIXED,
+                    blockEntity.getLevel(),
+                    null,
+                    0
+            );
         }
-        renderState.activeCount = stateIdx;
     }
 
     private String getTierIdFromBlock(BlockState state) {
@@ -92,15 +87,43 @@ public class InfusionAltarBlockEntityRenderer implements BlockEntityRenderer<Abs
     public void submit(InfusionAltarBlockEntityRenderState renderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, CameraRenderState cameraRenderState) {
         int light = getLightLevel(renderState.blockEntityLevel, renderState.lightPosition);
 
-        // 1. Render Ghost Blocks if not formed
-        if (!renderState.isFormed && renderState.multiblockBlock != null) {
-            renderGhostRings(renderState, poseStack, submitNodeCollector, light);
+        // 1. Render Multiblock Overlays
+        if (!renderState.isFormed) {
+            if (renderState.multiblockBlock != null) {
+                renderGhostRings(renderState, poseStack, submitNodeCollector, light);
+            }
+        } else {
+            // Render the "Giant Placeholder" when formed
+            renderFormedPlaceholder(renderState, poseStack, submitNodeCollector, light);
         }
 
-        // 2. Render Spinning Items
-        if (renderState.activeCount > 0) {
-            renderSpinningItems(renderState, poseStack, submitNodeCollector, light);
+        int itemLight = getFormedLightLevel(
+                renderState.blockEntityLevel,
+                renderState.lightPosition,
+                Math.max(1, renderState.multiblockRadius)
+        );
+
+        // 2. Render centered item
+        if (renderState.hasItem) {
+            renderCenteredItem(renderState, poseStack, submitNodeCollector, itemLight);
         }
+    }
+
+    private void renderFormedPlaceholder(InfusionAltarBlockEntityRenderState renderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light) {
+        poseStack.pushPose();
+
+        float scale = Math.max(1.0f, renderState.multiblockRadius);
+        int formedLight = getFormedLightLevel(renderState.blockEntityLevel, renderState.lightPosition, renderState.multiblockRadius);
+
+        // Rotate and scale around the altar block center.
+        poseStack.translate(0.5f, 0.5f, 0.5f);
+        poseStack.mulPose(Axis.YP.rotationDegrees(renderState.rotation * 0.5f));
+        poseStack.scale(scale, scale, scale);
+        poseStack.translate(-0.5f, -0.5f, -0.5f);
+
+        submitNodeCollector.submitBlock(poseStack, renderState.altarBlock, formedLight, OverlayTexture.NO_OVERLAY, 0);
+        
+        poseStack.popPose();
     }
 
     private void renderGhostRings(InfusionAltarBlockEntityRenderState renderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light) {
@@ -110,11 +133,8 @@ public class InfusionAltarBlockEntityRenderer implements BlockEntityRenderer<Abs
         for (int i = -r; i <= r; i++) {
             for (int j = -r; j <= r; j++) {
                 if (Math.round(Math.sqrt(i * i + j * j)) == r) {
-                    // XZ Ring
                     renderGhostBlock(poseStack, submitNodeCollector, ghostState, i, 0, j, light);
-                    // XY Ring
                     renderGhostBlock(poseStack, submitNodeCollector, ghostState, i, j, 0, light);
-                    // YZ Ring
                     renderGhostBlock(poseStack, submitNodeCollector, ghostState, 0, i, j, light);
                 }
             }
@@ -122,48 +142,25 @@ public class InfusionAltarBlockEntityRenderer implements BlockEntityRenderer<Abs
     }
 
     private void renderGhostBlock(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, BlockState state, int dx, int dy, int dz, int light) {
-        // Skip the center block
         if (dx == 0 && dy == 0 && dz == 0) return;
 
         poseStack.pushPose();
         poseStack.translate(dx, dy, dz);
-        
-        // Center the 0.5 scale block within the 1x1x1 space
         poseStack.translate(0.25f, 0.25f, 0.25f);
         poseStack.scale(0.5f, 0.5f, 0.5f);
 
-        submitNodeCollector.submitBlock(poseStack, state, light, OverlayTexture.NO_OVERLAY, -1);
+        submitNodeCollector.submitBlock(poseStack, state, light, OverlayTexture.NO_OVERLAY, 0);
         
         poseStack.popPose();
     }
 
-    private void renderSpinningItems(InfusionAltarBlockEntityRenderState renderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light) {
-        for (int i = 0; i < renderState.activeCount; i++) {
-            poseStack.pushPose();
-
-            float offsetX = 0;
-            float offsetZ = 0;
-            float offsetY = ORBIT_HEIGHT;
-
-            if (renderState.activeCount > 1) {
-                float angle = (float) (i * (2.0 * Math.PI / renderState.activeCount));
-                float rotationRad = (float) Math.toRadians(renderState.rotation);
-                
-                offsetX = (float) (Math.cos(angle + rotationRad) * ORBIT_RADIUS);
-                offsetZ = (float) (Math.sin(angle + rotationRad) * ORBIT_RADIUS);
-                
-                float wave = (float) Math.sin((renderState.gameTime + i * 10) * WAVE_SPEED) * WAVE_AMPLITUDE_Y;
-                offsetY += wave;
-            }
-
-            poseStack.translate(0.5f + offsetX, offsetY, 0.5f + offsetZ);
-            poseStack.scale(0.4f, 0.4f, 0.4f);
-            poseStack.mulPose(Axis.YP.rotationDegrees(renderState.rotation * SELF_ROTATION_SPEED + (i * 45)));
-
-            renderState.itemStates.get(i).submit(poseStack, submitNodeCollector, light, OverlayTexture.NO_OVERLAY, 0);
-
-            poseStack.popPose();
-        }
+    private void renderCenteredItem(InfusionAltarBlockEntityRenderState renderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light) {
+        poseStack.pushPose();
+        poseStack.translate(0.5f, 0.5f, 0.5f);
+        poseStack.scale(1f, 1f, 1f);
+        poseStack.mulPose(Axis.YP.rotationDegrees(renderState.rotation * SELF_ROTATION_SPEED));
+        renderState.itemState.submit(poseStack, submitNodeCollector, light, OverlayTexture.NO_OVERLAY, 0);
+        poseStack.popPose();
     }
 
     private int getLightLevel(Level level, BlockPos pos) {
@@ -171,5 +168,29 @@ public class InfusionAltarBlockEntityRenderer implements BlockEntityRenderer<Abs
         int bLight = level.getBrightness(LightLayer.BLOCK, pos);
         int sLight = level.getBrightness(LightLayer.SKY, pos);
         return LightTexture.pack(bLight, sLight);
+    }
+
+    private int getFormedLightLevel(Level level, BlockPos pos, int radius) {
+        if (level == null || pos == null) return 0;
+
+        int r = Math.max(1, radius);
+        int maxBlock = 0;
+        int maxSky = 0;
+
+        BlockPos[] samplePoints = new BlockPos[] {
+                pos,
+                pos.above(r),
+                pos.offset(r, r, 0),
+                pos.offset(-r, r, 0),
+                pos.offset(0, r, r),
+                pos.offset(0, r, -r)
+        };
+
+        for (BlockPos sample : samplePoints) {
+            maxBlock = Math.max(maxBlock, level.getBrightness(LightLayer.BLOCK, sample));
+            maxSky = Math.max(maxSky, level.getBrightness(LightLayer.SKY, sample));
+        }
+
+        return LightTexture.pack(maxBlock, maxSky);
     }
 }

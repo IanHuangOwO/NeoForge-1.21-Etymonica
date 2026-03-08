@@ -55,6 +55,11 @@ public class ModBlockEntities {
                         InfusionAltarTier2BlockEntity::new,
                         ModBlocks.INFUSION_ALTAR_TIER2.get()));
 
+        public static final Supplier<BlockEntityType<org.iansaididontcare.etymonica.block.entity.infusionaltar.AltarPartBlockEntity>> ALTAR_PART_BE =
+                BLOCK_ENTITIES.register("altar_part_be", () -> new BlockEntityType<>(
+                        org.iansaididontcare.etymonica.block.entity.infusionaltar.AltarPartBlockEntity::new,
+                        ModBlocks.ALTAR_PART_BLOCK.get()));
+
         public static final Supplier<BlockEntityType<ZombieBrainInAJarBlockEntity>> BRAIN_IN_A_JAR_BE =
                 BLOCK_ENTITIES.register("brain_in_a_jar_be", () -> new BlockEntityType<>(
                         ZombieBrainInAJarBlockEntity::new,
