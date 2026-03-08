@@ -17,7 +17,6 @@ import org.iansaididontcare.etymonica.block.custom.jar.ZombieBrainInAJarBlock;
 import org.iansaididontcare.etymonica.block.custom.infusionaltar.InfusionAltarTier0Block;
 import org.iansaididontcare.etymonica.block.custom.infusionaltar.InfusionAltarTier1Block;
 import org.iansaididontcare.etymonica.block.custom.infusionaltar.InfusionAltarTier2Block;
-import org.iansaididontcare.etymonica.block.custom.infusionaltar.InfusionCoreBlock;
 import org.iansaididontcare.etymonica.fluid.ModFluids;
 import org.iansaididontcare.etymonica.item.ModItems;
 import org.iansaididontcare.etymonica.item.custom.BrainInAJarItem;
@@ -63,12 +62,6 @@ public class ModBlocks {
                 (properties) -> new InfusionAltarTier2Block(properties
                         .strength(4.5f)
                         .sound(SoundType.STONE)));
-
-        public static final DeferredBlock<Block> INFUSION_CORE = registerBlock("infusion_core",
-                (properties) -> new InfusionCoreBlock(properties
-                        .noOcclusion()
-                        .noLootTable()
-                        .noCollision()));
 
         public static final DeferredBlock<Block> BRAIN_IN_A_JAR = registerBlock("brain_in_a_jar",
                 properties -> new ZombieBrainInAJarBlock(properties

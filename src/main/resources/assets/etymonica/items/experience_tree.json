@@ -1,0 +1,19 @@
+{
+  "model": {
+    "type": "minecraft:range_dispatch",
+    "property": "minecraft:custom_model_data",
+    "index": 0,
+    "fallback": {
+      "type": "minecraft:model",
+      "model": "minecraft:item/oak_sapling"
+    },
+    "entries": [
+      { "threshold": 0.0, "model": { "type": "minecraft:model", "model": "minecraft:item/oak_sapling" } },
+      { "threshold": 15.0, "model": { "type": "minecraft:model", "model": "minecraft:item/spruce_sapling" } },
+      { "threshold": 30.0, "model": { "type": "minecraft:model", "model": "minecraft:item/birch_sapling" } },
+      { "threshold": 100.0, "model": { "type": "minecraft:model", "model": "minecraft:item/jungle_sapling" } },
+      { "threshold": 200.0, "model": { "type": "minecraft:model", "model": "minecraft:item/acacia_sapling" } },
+      { "threshold": 500.0, "model": { "type": "minecraft:model", "model": "minecraft:item/dark_oak_sapling" } }
+    ]
+  }
+}

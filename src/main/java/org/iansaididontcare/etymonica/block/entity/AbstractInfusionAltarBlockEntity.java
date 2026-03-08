@@ -2,7 +2,6 @@ package org.iansaididontcare.etymonica.block.entity;
 
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.HolderLookup;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.protocol.Packet;
@@ -16,10 +15,8 @@ import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
 import net.minecraft.world.SimpleContainer;
-import net.minecraft.world.entity.item.ItemEntity;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
 import net.minecraft.world.level.Level;
 import net.minecraft.world.level.block.Block;
 import net.minecraft.world.level.block.entity.BlockEntity;
@@ -28,22 +25,15 @@ import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.storage.ValueInput;
 import net.minecraft.world.level.storage.ValueOutput;
 import net.neoforged.neoforge.items.ItemStackHandler;
-import org.iansaididontcare.etymonica.block.entity.infusionaltar.InfusionCoreBlockEntity;
-import org.iansaididontcare.etymonica.registry.enchantment.api.EnchantmentRarity;
-import org.iansaididontcare.etymonica.registry.enchantment.data.EnchantmentData;
+import org.iansaididontcare.etymonica.block.custom.AbstractInfusionAltarBlock;
 import org.iansaididontcare.etymonica.registry.infusion.api.AltarActionResult;
 import org.iansaididontcare.etymonica.registry.infusion.api.InfusionAltarStats;
+import org.iansaididontcare.etymonica.registry.infusion.api.MultiblockStructure;
 import org.iansaididontcare.etymonica.registry.infusion.data.InfusionAltarData;
 import org.jetbrains.annotations.Nullable;
 
-import org.iansaididontcare.etymonica.Etymonica;
-import org.iansaididontcare.etymonica.block.ModBlocks;
-import org.iansaididontcare.etymonica.block.custom.AbstractInfusionAltarBlock;
-import org.iansaididontcare.etymonica.block.custom.infusionaltar.InfusionCoreBlock;
-import org.iansaididontcare.etymonica.registry.infusion.api.MultiblockStructure;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
     public static final int TICKS_PER_ITEM = 200;
@@ -77,15 +67,6 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
     private int maxProgress = 0;
     private final List<ItemStack> resultsBuffer = new ArrayList<>();
     private final List<ItemStack> popBuffer = new ArrayList<>();
-
-    public @Nullable InfusionCoreBlockEntity getCore() {
-        if (!isFormed || level == null) return null;
-        String tierId = getTierIdFromState(level, getBlockState());
-        InfusionAltarStats stats = InfusionAltarData.getAltarTier(tierId);
-        BlockPos corePos = worldPosition.above(stats.multiblockStructure().offsetY() + 1);
-        BlockEntity be = level.getBlockEntity(corePos);
-        return be instanceof InfusionCoreBlockEntity core ? core : null;
-    }
 
     public ItemStackHandler getInventory() {
         return this.inventory;
@@ -153,37 +134,13 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
 
     private void processOneItem(Level level) {
         if (resultsBuffer.isEmpty()) return;
-        InfusionCoreBlockEntity core = getCore();
-        if (core == null) {
-            resultsBuffer.clear();
-            return;
-        }
-
-        ItemStack bookCheck = core.getInventory().getStackInSlot(0);
-        if (bookCheck.isEmpty() || !bookCheck.is(Items.BOOK)) {
-            resultsBuffer.clear();
-            return;
-        }
-
-        ItemStack result = resultsBuffer.remove(0);
-        popBuffer.add(result);
+        
+        // Core functionality removed - logic needs refactoring if infusion is to be kept
+        resultsBuffer.clear();
     }
 
     private void finishInfusion(Level level) {
-        InfusionCoreBlockEntity core = getCore();
-        if (core == null) return;
-
-        int countToConsume = popBuffer.size();
-        if (countToConsume > 0) {
-            core.getInventory().extractItem(0, countToConsume, false);
-        }
-
-        BlockPos corePos = core.getBlockPos();
-        for (ItemStack result : popBuffer) {
-            ItemEntity entity = new ItemEntity(level, corePos.getX() + 0.5, corePos.getY() + 1.5, corePos.getZ() + 0.5, result);
-            entity.setDeltaMovement(level.random.nextGaussian() * 0.05, 0.2 + level.random.nextDouble() * 0.2, level.random.nextGaussian() * 0.05);
-            level.addFreshEntity(entity);
-        }
+        // Core functionality removed
         popBuffer.clear();
         level.sendBlockUpdated(worldPosition, getBlockState(), getBlockState(), 3);
     }
@@ -191,63 +148,8 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
     public AltarActionResult attemptStartInfusion(Player player) {
         if (level == null || level.isClientSide() || mode != Mode.IDLE || !isFormed) return AltarActionResult.INFUSE_BLOCKED;
 
-        InfusionCoreBlockEntity core = getCore();
-        if (core == null) return AltarActionResult.INFUSE_BLOCKED;
-
-        ItemStack bookStack = core.getInventory().getStackInSlot(0);
-        if (bookStack.isEmpty() || !bookStack.is(Items.BOOK)) return AltarActionResult.INFUSE_BLOCKED;
-
-        String tierId = getTierIdFromState(level, getBlockState());
-        InfusionAltarStats stats = InfusionAltarData.getAltarTier(tierId);
-        int processCount = Math.min(bookStack.getCount(), stats.itemsPerInfusion());
-
-        if (processCount <= 0) return AltarActionResult.INFUSE_BLOCKED;
-
-        resultsBuffer.clear();
-        popBuffer.clear();
-        RandomSource random = level.random;
-        var enchantRegistry = level.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
-
-        for (int i = 0; i < processCount; i++) {
-            EnchantmentRarity rolledRarity = rollRarity(stats, random);
-            Optional<Identifier> rolledEnchantId = EnchantmentData.getRandomEnchantmentByRarity(rolledRarity, random);
-            
-            if (rolledEnchantId.isPresent()) {
-                var enchantHolder = enchantRegistry.get(net.minecraft.resources.ResourceKey.create(Registries.ENCHANTMENT, rolledEnchantId.get()));
-                if (enchantHolder.isPresent()) {
-                    ItemStack enchantedBook = new ItemStack(Items.ENCHANTED_BOOK);
-                    net.minecraft.world.item.enchantment.ItemEnchantments.Mutable mutable = new net.minecraft.world.item.enchantment.ItemEnchantments.Mutable(net.minecraft.world.item.enchantment.ItemEnchantments.EMPTY);
-                    mutable.set(enchantHolder.get(), 1);
-                    net.minecraft.world.item.enchantment.EnchantmentHelper.setEnchantments(enchantedBook, mutable.toImmutable());
-                    resultsBuffer.add(enchantedBook);
-                }
-            }
-        }
-
-        if (resultsBuffer.isEmpty()) return AltarActionResult.INFUSE_BLOCKED;
-
-        progress = 0;
-        maxProgress = (int) Math.round(TICKS_PER_ITEM / (1.0 + stats.speed()));
-        mode = Mode.INFUSE;
-        
-        setChanged();
-        level.sendBlockUpdated(getBlockPos(), getBlockState(), getBlockState(), 3);
-        return AltarActionResult.INFUSE_STARTED;
-    }
-
-    private EnchantmentRarity rollRarity(InfusionAltarStats stats, RandomSource random) {
-        double roll = random.nextDouble();
-        var w = stats.weights();
-        if (roll < w.mystic()) return EnchantmentRarity.MYSTIC;
-        roll -= w.mystic();
-        if (roll < w.legendary()) return EnchantmentRarity.LEGENDARY;
-        roll -= w.legendary();
-        if (roll < w.epic()) return EnchantmentRarity.EPIC;
-        roll -= w.epic();
-        if (roll < w.rare()) return EnchantmentRarity.RARE;
-        roll -= w.rare();
-        if (roll < w.uncommon()) return EnchantmentRarity.UNCOMMON;
-        return EnchantmentRarity.COMMON;
+        // Core functionality removed - logic needs refactoring if infusion is to be kept
+        return AltarActionResult.INFUSE_BLOCKED;
     }
 
     public boolean checkStructure() {
@@ -297,24 +199,7 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         if (this.isFormed != formed) {
             this.isFormed = formed;
             if (level != null && !level.isClientSide()) {
-                String tierId = getTierIdFromState(level, getBlockState());
-                InfusionAltarStats stats = InfusionAltarData.getAltarTier(tierId);
-                BlockPos corePos = worldPosition.above(stats.multiblockStructure().offsetY() + 1);
-
-                if (formed) {
-                    // Place core
-                    int tierInt = getTierInt(tierId);
-                    BlockState coreState = ModBlocks.INFUSION_CORE.get().defaultBlockState().setValue(InfusionCoreBlock.TIER, tierInt);
-                    level.setBlock(corePos, coreState, 3);
-                    if (level.getBlockEntity(corePos) instanceof InfusionCoreBlockEntity core) {
-                        core.setTierId(tierId);
-                        core.resizeInventory(stats.itemsPerInfusion());
-                    }
-                } else {
-                    // Remove core
-                    if (level.getBlockState(corePos).is(ModBlocks.INFUSION_CORE.get())) {
-                        level.destroyBlock(corePos, true);
-                    }
+                if (!formed) {
                     mode = Mode.IDLE;
                     progress = 0;
                     resultsBuffer.clear();
@@ -329,14 +214,6 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
                 level.sendBlockUpdated(worldPosition, state, state, 3);
             }
         }
-    }
-
-    private int getTierInt(String tierId) {
-        return switch (tierId) {
-            case "tier1" -> 1;
-            case "tier2" -> 2;
-            default -> 0;
-        };
     }
 
     public void tickServer(Level level, BlockPos pos, BlockState state) {
@@ -373,9 +250,8 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
 
     private void recomputeStatsNow(Level level, BlockState state) {
         String tierId = getTierIdFromState(level, state);
-        InfusionAltarStats base = InfusionAltarData.getAltarTier(tierId);
-        boolean tierChanged = !tierId.equals(lastTierId);
         long revision = InfusionAltarData.getRevision();
+        boolean tierChanged = !tierId.equals(lastTierId);
         boolean dataChanged = revision != lastDataRevision;
 
         if (!(statsDirty || tierChanged || dataChanged)) return;
@@ -383,9 +259,6 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity {
         lastTierId = tierId;
         lastDataRevision = revision;
         statsDirty = false;
-
-        InfusionCoreBlockEntity core = getCore();
-        if (core != null) core.setTierId(tierId);
     }
 
     protected final Identifier blockId(Level level, Block block) {

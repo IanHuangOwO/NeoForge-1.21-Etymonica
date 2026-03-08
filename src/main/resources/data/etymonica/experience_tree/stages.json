@@ -1,0 +1,10 @@
+{
+  "stages": [
+    { "threshold": 0, "name": "seed" },
+    { "threshold": 15, "name": "sprout" },
+    { "threshold": 30, "name": "sapling" },
+    { "threshold": 100, "name": "young_tree" },
+    { "threshold": 200, "name": "tree" },
+    { "threshold": 500, "name": "ancient_tree" }
+  ]
+}

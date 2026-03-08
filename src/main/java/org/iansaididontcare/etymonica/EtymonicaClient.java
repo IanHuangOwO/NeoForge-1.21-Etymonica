@@ -16,7 +16,6 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import org.iansaididontcare.etymonica.block.entity.ModBlockEntities;
 import org.iansaididontcare.etymonica.block.entity.renderer.EnchantingTableBlockEntityRenderer;
 import org.iansaididontcare.etymonica.block.entity.renderer.InfusionAltarBlockEntityRenderer;
-import org.iansaididontcare.etymonica.block.entity.renderer.InfusionCoreBlockEntityRenderer;
 import org.iansaididontcare.etymonica.fluid.ModFluids;
 import org.iansaididontcare.etymonica.screen.ModMenuTypes;
 import org.iansaididontcare.etymonica.screen.custom.EnchantingTableScreen;
@@ -27,9 +26,6 @@ import org.iansaididontcare.etymonica.screen.custom.EnchantingTableScreen;
 @EventBusSubscriber(modid = Etymonica.MOD_ID, value = Dist.CLIENT)
 public class EtymonicaClient {
     public EtymonicaClient(ModContainer container) {
-        // Allows NeoForge to create a config screen for this mod's configs.
-        // The config screen is accessed by going to the Mods screen > clicking on your mod > clicking on config.
-        // Do not forget to add translations for your config options to the en_us.json file.
         container.registerExtensionPoint(IConfigScreenFactory.class, ConfigurationScreen::new);
     }
 
@@ -55,8 +51,6 @@ public class EtymonicaClient {
         event.registerBlockEntityRenderer(ModBlockEntities.INFUSION_ALTAR_TIER0_BE.get(), InfusionAltarBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.INFUSION_ALTAR_TIER1_BE.get(), InfusionAltarBlockEntityRenderer::new);
         event.registerBlockEntityRenderer(ModBlockEntities.INFUSION_ALTAR_TIER2_BE.get(), InfusionAltarBlockEntityRenderer::new);
-
-        event.registerBlockEntityRenderer(ModBlockEntities.INFUSION_CORE_BE.get(), InfusionCoreBlockEntityRenderer::new);
     }
 
     @SubscribeEvent

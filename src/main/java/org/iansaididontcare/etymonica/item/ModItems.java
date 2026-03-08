@@ -10,11 +10,15 @@ import net.neoforged.neoforge.registries.DeferredItem;
 import net.neoforged.neoforge.registries.DeferredRegister;
 import org.iansaididontcare.etymonica.Etymonica;
 import org.iansaididontcare.etymonica.fluid.ModFluids;
+import org.iansaididontcare.etymonica.item.custom.ExperienceTreeItem;
 import org.iansaididontcare.etymonica.item.custom.Quill;
 import org.iansaididontcare.etymonica.item.custom.TuningFork;
 
 public class ModItems {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems(Etymonica.MOD_ID);
+
+    public static final DeferredItem<Item> EXPERIENCE_TREE = ITEMS.register("experience_tree",
+            registryName -> new ExperienceTreeItem(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName)).stacksTo(1)));
 
     public static final DeferredItem<Item> ETYMONICON = ITEMS.register("etymonicon",
             registryName -> new Item(new Item.Properties().setId(ResourceKey.create(Registries.ITEM, registryName))));

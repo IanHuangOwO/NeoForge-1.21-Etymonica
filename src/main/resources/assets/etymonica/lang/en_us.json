@@ -1,5 +1,11 @@
 {
   "item.etymonica.etymonicon": "Etymonicon",
+  "item.etymonica.experience_tree.seed": "Tree of Experience (Seed)",
+  "item.etymonica.experience_tree.sprout": "Tree of Experience (Sprout)",
+  "item.etymonica.experience_tree.sapling": "Tree of Experience (Sapling)",
+  "item.etymonica.experience_tree.young_tree": "Tree of Experience (Young Tree)",
+  "item.etymonica.experience_tree.tree": "Tree of Experience",
+  "item.etymonica.experience_tree.ancient_tree": "Ancient Tree of Experience",
   "item.etymonica.raw_orichalcum": "Raw Orichalcum",
   "item.etymonica.orichalcum_ingot": "Orichalcum Ingot",
   "item.etymonica.liquid_experience_bucket": "Liquid Experience Bucket",
@@ -57,5 +63,7 @@
   "tooltip.etymonica.tuning_fork.bound": "Bound: %s, %s, %s",
   "tooltip.etymonica.tuning_fork.different_dimension": "Different dimension",
   "tooltip.etymonica.tuning_fork.table_not_loaded": "(Machine not loaded)",
-  "tooltip.etymonica.brain_in_a_jar.storage": "Stored XP Fluid: %s / %s mB"
+  "tooltip.etymonica.brain_in_a_jar.storage": "Stored XP Fluid: %s / %s mB",
+  "tooltip.etymonica.experience_tree.experience": "Experience: %s",
+  "tooltip.etymonica.experience_tree.age": "Level: %s"
 }

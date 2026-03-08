@@ -22,6 +22,7 @@ public class ModCreativeModeTabs {
                     .title(Component.translatable("creativetab.etymonica.etymonica_items"))
                     .displayItems((itemDisplayParameters, output) -> {
                         output.accept(ModItems.ETYMONICON);
+                        output.accept(ModItems.EXPERIENCE_TREE);
                         output.accept(ModItems.RAW_ORICHALCUM);
                         output.accept(ModItems.ORICHALCUM_INGOT);
                         output.accept(ModItems.TUNING_FORK);

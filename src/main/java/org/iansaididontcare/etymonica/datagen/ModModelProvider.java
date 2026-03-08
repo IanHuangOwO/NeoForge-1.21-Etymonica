@@ -39,16 +39,23 @@ public class ModModelProvider extends ModelProvider {
     private static final Set<Identifier> MANUAL_MODEL_BLOCKS = Set.of(
             ModBlocks.ENCHANTING_TABLE_TIER0.getId(),
             ModBlocks.ENCHANTING_TABLE_TIER1.getId(),
+            ModBlocks.ENCHANTING_TABLE_TIER2.getId(),
             ModBlocks.INFUSION_ALTAR_TIER0.getId(),
+            ModBlocks.INFUSION_ALTAR_TIER1.getId(),
+            ModBlocks.INFUSION_ALTAR_TIER2.getId(),
             ModBlocks.PEDESTAL.getId(),
             ModBlocks.BRAIN_IN_A_JAR.getId(),
             ModBlocks.LIQUID_EXPERIENCE_BLOCK.getId()
     );
 
     private static final Set<Identifier> MANUAL_MODEL_ITEMS = Set.of(
+            ModItems.EXPERIENCE_TREE.getId(),
             ModBlocks.ENCHANTING_TABLE_TIER0.getId(),
             ModBlocks.ENCHANTING_TABLE_TIER1.getId(),
+            ModBlocks.ENCHANTING_TABLE_TIER2.getId(),
             ModBlocks.INFUSION_ALTAR_TIER0.getId(),
+            ModBlocks.INFUSION_ALTAR_TIER1.getId(),
+            ModBlocks.INFUSION_ALTAR_TIER2.getId(),
             ModBlocks.PEDESTAL.getId(),
             ModBlocks.BRAIN_IN_A_JAR.getId(),
             ModBlocks.LIQUID_EXPERIENCE_BLOCK.getId()
