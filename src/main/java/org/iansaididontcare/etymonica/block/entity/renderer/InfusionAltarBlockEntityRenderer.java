@@ -112,7 +112,7 @@ public class InfusionAltarBlockEntityRenderer implements BlockEntityRenderer<Abs
     private void renderFormedPlaceholder(InfusionAltarBlockEntityRenderState renderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light) {
         poseStack.pushPose();
 
-        float scale = Math.max(1.0f, renderState.multiblockRadius);
+        float scale = Math.max(1.0f, renderState.multiblockRadius * 2);
         int formedLight = getFormedLightLevel(renderState.blockEntityLevel, renderState.lightPosition, renderState.multiblockRadius);
 
         // Rotate and scale around the altar block center.

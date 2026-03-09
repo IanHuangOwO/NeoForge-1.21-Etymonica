@@ -3,9 +3,11 @@ package org.iansaididontcare.etymonica.block.custom.infusionaltar;
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
 import net.minecraft.resources.Identifier;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Containers;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.SimpleContainer;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
@@ -47,11 +49,11 @@ public class AltarPartBlock extends BaseEntityBlock {
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                           Player player, InteractionHand hand, BlockHitResult hitResult) {
-        BlockEntity be = level.getBlockEntity(pos);
-        if (be instanceof AltarPartBlockEntity part) {
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof AltarPartBlockEntity part) {
             BlockPos masterPos = part.getMasterPos();
             if (masterPos != null && level.getBlockEntity(masterPos) instanceof AbstractInfusionAltarBlockEntity master) {
-                return master.handleInteraction(player, hand, stack);
+                ((ServerPlayer) player).openMenu(new SimpleMenuProvider(master, master.getDisplayName()), masterPos);
+                return InteractionResult.SUCCESS;
             }
         }
 

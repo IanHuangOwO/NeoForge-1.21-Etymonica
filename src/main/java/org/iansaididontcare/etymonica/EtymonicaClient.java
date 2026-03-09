@@ -19,6 +19,7 @@ import org.iansaididontcare.etymonica.block.entity.renderer.InfusionAltarBlockEn
 import org.iansaididontcare.etymonica.fluid.ModFluids;
 import org.iansaididontcare.etymonica.screen.ModMenuTypes;
 import org.iansaididontcare.etymonica.screen.custom.EnchantingTableScreen;
+import org.iansaididontcare.etymonica.screen.custom.InfusionAltarScreen;
 
 // This class will not load on dedicated servers. Accessing client side code from here is safe.
 @Mod(value = Etymonica.MOD_ID, dist = Dist.CLIENT)
@@ -56,5 +57,6 @@ public class EtymonicaClient {
     @SubscribeEvent
     public static void registerScreens(RegisterMenuScreensEvent event) {
         event.register(ModMenuTypes.ENCHANTING_TABLE_MENU.get(), EnchantingTableScreen::new);
+        event.register(ModMenuTypes.INFUSION_ALTAR_MENU.get(), InfusionAltarScreen::new);
     }
 }

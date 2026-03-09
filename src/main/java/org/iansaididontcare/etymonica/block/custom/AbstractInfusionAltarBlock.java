@@ -2,8 +2,10 @@ package org.iansaididontcare.etymonica.block.custom;
 
 import com.mojang.serialization.MapCodec;
 import net.minecraft.core.BlockPos;
+import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.InteractionResult;
+import net.minecraft.world.SimpleMenuProvider;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -58,10 +60,9 @@ public abstract class AbstractInfusionAltarBlock extends BaseEntityBlock {
     @Override
     protected InteractionResult useItemOn(ItemStack stack, BlockState state, Level level, BlockPos pos,
                                           Player player, InteractionHand hand, BlockHitResult hitResult) {
-        if(level.getBlockEntity(pos) instanceof AbstractInfusionAltarBlockEntity altar) {
-            return altar.handleInteraction(player, hand, stack);
+        if (!level.isClientSide() && level.getBlockEntity(pos) instanceof AbstractInfusionAltarBlockEntity altar) {
+            ((ServerPlayer) player).openMenu(new SimpleMenuProvider(altar, altar.getDisplayName()), pos);
         }
-
-        return InteractionResult.PASS;
+        return InteractionResult.SUCCESS;
     }
 }

@@ -1,6 +1,7 @@
 package org.iansaididontcare.etymonica.screen;
 
 import org.iansaididontcare.etymonica.screen.custom.EnchantingTableMenu;
+import org.iansaididontcare.etymonica.screen.custom.InfusionAltarMenu;
 import org.iansaididontcare.etymonica.screen.custom.PedestalMenu;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.world.inventory.AbstractContainerMenu;
@@ -21,6 +22,9 @@ public class ModMenuTypes {
 
     public static final DeferredHolder<MenuType<?>, MenuType<EnchantingTableMenu>> ENCHANTING_TABLE_MENU =
             registerMenuType("enchanting_table_menu", (id, inv, buf) -> new EnchantingTableMenu(id, inv, buf));
+
+    public static final DeferredHolder<MenuType<?>, MenuType<InfusionAltarMenu>> INFUSION_ALTAR_MENU =
+            registerMenuType("infusion_altar_menu", (id, inv, buf) -> new InfusionAltarMenu(id, inv, buf));
 
     private static <T extends AbstractContainerMenu>DeferredHolder<MenuType<?>, MenuType<T>> registerMenuType(String name,
                                                                                                               IContainerFactory<T> factory) {
