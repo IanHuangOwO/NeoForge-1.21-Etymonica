@@ -1,6 +1,6 @@
 {
   "model": {
     "type": "minecraft:model",
-    "model": "etymonica:block/infusion_core"
+    "model": "etymonica:item/zombie_brain_jar"
   }
 }

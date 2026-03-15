@@ -70,10 +70,19 @@ public final class InfusionAltarTierLoader {
 
                 int multiblockRadius = getInt(t, "multiblock_radius", 3);
                 Identifier multiblockBlock = Identifier.parse(getString(t, "multiblock_block", "minecraft:gold_block"));
+                int glassSphereRadius = Math.max(0, getInt(t, "glass_sphere_radius", 0));
+                if (glassSphereRadius >= multiblockRadius && multiblockRadius > 0) {
+                    int clamped = Math.max(0, multiblockRadius - 1);
+                    Etymonica.LOGGER.warn(
+                        "glass_sphere_radius ({}) must be < multiblock_radius ({}). Clamping to {} for tier {}.",
+                        glassSphereRadius, multiblockRadius, clamped, tierId
+                    );
+                    glassSphereRadius = clamped;
+                }
 
                 parsed.put(tierId, new InfusionAltarStats(
                     itemsPerInfusion, speed, efficiency, linkRadius, maxLinkedPedestals, 
-                    weights, multiblockRadius, multiblockBlock
+                    weights, multiblockRadius, multiblockBlock, glassSphereRadius
                 ));
             }
 

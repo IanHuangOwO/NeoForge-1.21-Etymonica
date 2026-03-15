@@ -43,7 +43,8 @@ public class ModCreativeModeTabs {
                         output.accept(ModBlocks.INFUSION_ALTAR_TIER0);
                         output.accept(ModBlocks.INFUSION_ALTAR_TIER1);
                         output.accept(ModBlocks.INFUSION_ALTAR_TIER2);
-                        output.accept(ModBlocks.BRAIN_IN_A_JAR);
+                        output.accept(ModBlocks.ZOMBIE_BRAIN_JAR);
+                        output.accept(ModBlocks.JAR);
                     }).build());
 
     public static void register(IEventBus eventBus) {CREATIVE_MODE_TAB.register(eventBus);}

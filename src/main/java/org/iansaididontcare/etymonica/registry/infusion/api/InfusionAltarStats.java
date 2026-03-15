@@ -10,11 +10,13 @@ public record InfusionAltarStats(
     int maxLinkedPedestals,
     EnchantmentTierWeights weights,
     int multiblockRadius,
-    Identifier multiblockBlock
+    Identifier multiblockBlock,
+    int glassSphereRadius
 ) {
     public static final InfusionAltarStats DEFAULT = new InfusionAltarStats(
             1, 0.1, 0.0, 4, 16, 
             EnchantmentTierWeights.DEFAULT, 
-            3, Identifier.parse("minecraft:gold_block")
+            3, Identifier.parse("minecraft:gold_block"),
+            0
     );
 }

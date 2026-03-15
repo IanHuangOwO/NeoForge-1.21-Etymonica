@@ -13,15 +13,15 @@ import net.minecraft.world.level.block.entity.BlockEntityType;
 import net.minecraft.world.level.block.state.BlockState;
 import org.iansaididontcare.etymonica.block.custom.AbstractJarBlock;
 import org.iansaididontcare.etymonica.block.entity.ModBlockEntities;
-import org.iansaididontcare.etymonica.block.entity.jar.ZombieBrainInAJarBlockEntity;
-import org.iansaididontcare.etymonica.item.custom.BrainInAJarItem;
+import org.iansaididontcare.etymonica.block.entity.jar.ZombieBrainJarBlockEntity;
+import org.iansaididontcare.etymonica.item.custom.jar.JarItem;
 import org.iansaididontcare.etymonica.registry.jar.data.JarData;
 import org.jetbrains.annotations.Nullable;
 
-public class ZombieBrainInAJarBlock extends AbstractJarBlock {
-    public static final MapCodec<ZombieBrainInAJarBlock> CODEC = simpleCodec(ZombieBrainInAJarBlock::new);
+public class ZombieBrainJarBlock extends AbstractJarBlock {
+    public static final MapCodec<ZombieBrainJarBlock> CODEC = simpleCodec(ZombieBrainJarBlock::new);
 
-    public ZombieBrainInAJarBlock(Properties properties) {
+    public ZombieBrainJarBlock(Properties properties) {
         super(properties);
     }
 
@@ -38,7 +38,7 @@ public class ZombieBrainInAJarBlock extends AbstractJarBlock {
     @Nullable
     @Override
     public BlockEntity newBlockEntity(BlockPos pos, BlockState state) {
-        return new ZombieBrainInAJarBlockEntity(pos, state);
+        return new ZombieBrainJarBlockEntity(pos, state);
     }
 
     @Nullable
@@ -46,33 +46,33 @@ public class ZombieBrainInAJarBlock extends AbstractJarBlock {
     public <T extends BlockEntity> BlockEntityTicker<T> getTicker(Level level, BlockState state, BlockEntityType<T> type) {
         if (level.isClientSide()) return null;
 
-        return createTickerHelper(type, ModBlockEntities.BRAIN_IN_A_JAR_BE.get(),
-                (lvl, p, st, be) -> ((ZombieBrainInAJarBlockEntity) be).tickServer(lvl, p, st));
+        return createTickerHelper(type, ModBlockEntities.ZOMBIE_BRAIN_JAR_BE.get(),
+                (lvl, p, st, be) -> ((ZombieBrainJarBlockEntity) be).tickServer(lvl, p, st));
     }
 
     @Override
     protected boolean isJarEntity(@Nullable BlockEntity blockEntity) {
-        return blockEntity instanceof ZombieBrainInAJarBlockEntity;
+        return blockEntity instanceof ZombieBrainJarBlockEntity;
     }
 
     @Override
     protected int getJarStoredMillibuckets(BlockEntity blockEntity) {
-        return ((ZombieBrainInAJarBlockEntity) blockEntity).getStoredMillibuckets();
+        return ((ZombieBrainJarBlockEntity) blockEntity).getStoredMillibuckets();
     }
 
     @Override
     protected void setJarStoredMillibuckets(BlockEntity blockEntity, int amount) {
-        ((ZombieBrainInAJarBlockEntity) blockEntity).setStoredMillibuckets(amount);
+        ((ZombieBrainJarBlockEntity) blockEntity).setStoredMillibuckets(amount);
     }
 
     @Override
     protected boolean tryJarExtract(BlockEntity blockEntity, Level level, BlockPos pos, BlockState state, int amount) {
-        return ((ZombieBrainInAJarBlockEntity) blockEntity).tryExtract(level, pos, state, amount);
+        return ((ZombieBrainJarBlockEntity) blockEntity).tryExtract(level, pos, state, amount);
     }
 
     @Override
     protected boolean tryJarInsert(BlockEntity blockEntity, Level level, BlockPos pos, BlockState state, int amount) {
-        return ((ZombieBrainInAJarBlockEntity) blockEntity).tryInsert(level, pos, state, amount);
+        return ((ZombieBrainJarBlockEntity) blockEntity).tryInsert(level, pos, state, amount);
     }
 
     @Override
@@ -83,11 +83,11 @@ public class ZombieBrainInAJarBlock extends AbstractJarBlock {
 
     @Override
     protected int getItemStoredMillibuckets(ItemStack stack) {
-        return BrainInAJarItem.getStoredMillibuckets(stack);
+        return JarItem.getStoredMillibuckets(stack);
     }
 
     @Override
     protected void setItemStoredMillibuckets(ItemStack stack, int amount) {
-        BrainInAJarItem.setStoredMillibuckets(stack, amount);
+        JarItem.setStoredMillibuckets(stack, amount);
     }
 }

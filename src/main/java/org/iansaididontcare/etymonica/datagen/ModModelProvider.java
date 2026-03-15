@@ -44,7 +44,9 @@ public class ModModelProvider extends ModelProvider {
             ModBlocks.INFUSION_ALTAR_TIER1.getId(),
             ModBlocks.INFUSION_ALTAR_TIER2.getId(),
             ModBlocks.PEDESTAL.getId(),
-            ModBlocks.BRAIN_IN_A_JAR.getId(),
+            ModBlocks.ALTAR_PART_BLOCK.getId(),
+            ModBlocks.ZOMBIE_BRAIN_JAR.getId(),
+            ModBlocks.JAR.getId(),
             ModBlocks.LIQUID_EXPERIENCE_BLOCK.getId()
     );
 
@@ -57,7 +59,8 @@ public class ModModelProvider extends ModelProvider {
             ModBlocks.INFUSION_ALTAR_TIER1.getId(),
             ModBlocks.INFUSION_ALTAR_TIER2.getId(),
             ModBlocks.PEDESTAL.getId(),
-            ModBlocks.BRAIN_IN_A_JAR.getId(),
+            ModBlocks.ZOMBIE_BRAIN_JAR.getId(),
+            ModBlocks.JAR.getId(),
             ModBlocks.LIQUID_EXPERIENCE_BLOCK.getId()
     );
 

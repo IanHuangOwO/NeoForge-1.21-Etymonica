@@ -18,7 +18,8 @@ public class ModBlockTagProvider extends BlockTagsProvider {
     protected void addTags(HolderLookup.Provider provider) {
         tag(BlockTags.MINEABLE_WITH_PICKAXE)
                 .add(ModBlocks.ORICHALCUM_BLOCK.get())
-                .add(ModBlocks.BRAIN_IN_A_JAR.get());
+                .add(ModBlocks.ZOMBIE_BRAIN_JAR.get())
+                .add(ModBlocks.JAR.get());
 
         tag(BlockTags.NEEDS_DIAMOND_TOOL)
                 .add(ModBlocks.ORICHALCUM_BLOCK.get());

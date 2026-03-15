@@ -38,9 +38,12 @@ import org.iansaididontcare.etymonica.screen.custom.InfusionAltarMenu;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity implements MenuProvider {
+    private static final Identifier GLASS_BLOCK_ID = Identifier.parse("minecraft:glass");
 
     // --- Multiblock State ---
     private boolean isFormed = false;
@@ -102,7 +105,7 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity imple
         int r = stats.multiblockRadius();
         Identifier requiredBlockId = stats.multiblockBlock();
         
-        List<BlockPos> ringPositions = new ArrayList<>();
+        Set<BlockPos> ringPositions = new HashSet<>();
 
         for (int i = -r; i <= r; i++) {
             for (int j = -r; j <= r; j++) {
@@ -114,31 +117,60 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity imple
             }
         }
 
+        int glassRadius = stats.glassSphereRadius();
+        Set<BlockPos> glassPositions = new HashSet<>();
+        if (glassRadius > 0) {
+            int r2 = glassRadius * glassRadius;
+            int inner = Math.max(0, glassRadius - 1);
+            int inner2 = inner * inner;
+            for (int x = -glassRadius; x <= glassRadius; x++) {
+                for (int y = -glassRadius; y <= glassRadius; y++) {
+                    for (int z = -glassRadius; z <= glassRadius; z++) {
+                        int d2 = (x * x + y * y + z * z);
+                        if (d2 <= r2 && d2 > inner2) {
+                            glassPositions.add(pos.offset(x, y, z));
+                        }
+                    }
+                }
+            }
+        }
+
         for (BlockPos p : ringPositions) {
             if (p.equals(pos)) continue;
             if (!isBlockCorrect(level, p, requiredBlockId)) return;
         }
 
+        for (BlockPos p : glassPositions) {
+            if (p.equals(pos)) continue;
+            if (!isBlockCorrect(level, p, GLASS_BLOCK_ID)) return;
+        }
+
         // All blocks correct, form the multiblock
-        form(level, pos, state, ringPositions, requiredBlockId);
+        form(level, pos, state, ringPositions, requiredBlockId, glassPositions, GLASS_BLOCK_ID);
     }
 
-    private void form(Level level, BlockPos pos, BlockState state, List<BlockPos> ringPositions, Identifier originalBlockId) {
+    private void form(Level level, BlockPos pos, BlockState state, Set<BlockPos> ringPositions,
+                      Identifier ringBlockId, Set<BlockPos> glassPositions, Identifier glassBlockId) {
         this.isFormed = true;
         this.partPositions.clear();
 
-        for (BlockPos p : ringPositions) {
-            if (p.equals(pos)) continue;
-            
-            level.setBlock(p, ModBlocks.ALTAR_PART_BLOCK.get().defaultBlockState(), 3);
-            if (level.getBlockEntity(p) instanceof AltarPartBlockEntity part) {
-                part.setMetadata(pos, originalBlockId);
-                this.partPositions.add(p.immutable());
-            }
-        }
+        placeParts(level, pos, ringPositions, ringBlockId);
+        placeParts(level, pos, glassPositions, glassBlockId);
 
         // Feedback
         notifyStateChange(level, pos, state, true);
+    }
+
+    private void placeParts(Level level, BlockPos masterPos, Set<BlockPos> positions, Identifier originalBlockId) {
+        for (BlockPos p : positions) {
+            if (p.equals(masterPos)) continue;
+
+            level.setBlock(p, ModBlocks.ALTAR_PART_BLOCK.get().defaultBlockState(), 3);
+            if (level.getBlockEntity(p) instanceof AltarPartBlockEntity part) {
+                part.setMetadata(masterPos, originalBlockId);
+                this.partPositions.add(p.immutable());
+            }
+        }
     }
 
     public void unform() {
@@ -151,7 +183,7 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity imple
         this.isFormed = false;
         String tierId = getTierIdFromState(level, getBlockState());
         InfusionAltarStats stats = InfusionAltarData.getAltarTier(tierId);
-        Block originalBlock = BuiltInRegistries.BLOCK.get(stats.multiblockBlock())
+        Block fallbackBlock = BuiltInRegistries.BLOCK.get(stats.multiblockBlock())
                 .orElseThrow(() -> new IllegalStateException("Block not found: " + stats.multiblockBlock()))
                 .value();
 
@@ -159,8 +191,15 @@ public abstract class AbstractInfusionAltarBlockEntity extends BlockEntity imple
             if (p.equals(worldPosition)) continue;
 
             if (level.getBlockState(p).is(ModBlocks.ALTAR_PART_BLOCK.get())) {
+                Block originalBlock = fallbackBlock;
                 if (level.getBlockEntity(p) instanceof AltarPartBlockEntity part) {
                     part.setReverting(true);
+                    Identifier originalId = part.getOriginalBlock();
+                    if (originalId != null) {
+                        originalBlock = BuiltInRegistries.BLOCK.get(originalId)
+                                .orElseThrow(() -> new IllegalStateException("Block not found: " + originalId))
+                                .value();
+                    }
                 }
                 level.setBlock(p, originalBlock.defaultBlockState(), 3);
             }

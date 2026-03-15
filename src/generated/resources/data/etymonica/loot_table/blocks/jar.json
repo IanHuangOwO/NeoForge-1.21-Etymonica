@@ -11,11 +11,11 @@
       "entries": [
         {
           "type": "minecraft:item",
-          "name": "etymonica:brain_in_a_jar"
+          "name": "etymonica:jar"
         }
       ],
       "rolls": 1.0
     }
   ],
-  "random_sequence": "etymonica:blocks/brain_in_a_jar"
+  "random_sequence": "etymonica:blocks/jar"
 }

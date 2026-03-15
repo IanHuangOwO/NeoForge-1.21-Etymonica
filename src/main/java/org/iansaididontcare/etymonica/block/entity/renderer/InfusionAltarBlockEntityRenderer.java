@@ -13,6 +13,7 @@ import net.minecraft.client.renderer.item.ItemModelResolver;
 import net.minecraft.client.renderer.state.CameraRenderState;
 import net.minecraft.client.renderer.texture.OverlayTexture;
 import net.minecraft.core.BlockPos;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemDisplayContext;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.level.Level;
@@ -62,6 +63,10 @@ public class InfusionAltarBlockEntityRenderer implements BlockEntityRenderer<Abs
         renderState.multiblockBlock = BuiltInRegistries.BLOCK.get(stats.multiblockBlock())
                 .orElseThrow(() -> new IllegalStateException("Block not found: " + stats.multiblockBlock()))
                 .value().defaultBlockState();
+        renderState.glassSphereRadius = stats.glassSphereRadius();
+        renderState.glassSphereBlock = BuiltInRegistries.BLOCK.get(Identifier.parse("minecraft:glass"))
+                .orElseThrow(() -> new IllegalStateException("Block not found: minecraft:glass"))
+                .value().defaultBlockState();
 
         ItemStack stack = blockEntity.getInventory().getStackInSlot(0);
         renderState.hasItem = !stack.isEmpty();
@@ -91,6 +96,9 @@ public class InfusionAltarBlockEntityRenderer implements BlockEntityRenderer<Abs
         if (!renderState.isFormed) {
             if (renderState.multiblockBlock != null) {
                 renderGhostRings(renderState, poseStack, submitNodeCollector, light);
+            }
+            if (renderState.glassSphereBlock != null && renderState.glassSphereRadius > 0) {
+                renderGhostSphere(renderState, poseStack, submitNodeCollector, light);
             }
         } else {
             // Render the "Giant Placeholder" when formed
@@ -141,6 +149,27 @@ public class InfusionAltarBlockEntityRenderer implements BlockEntityRenderer<Abs
         }
     }
 
+    private void renderGhostSphere(InfusionAltarBlockEntityRenderState renderState, PoseStack poseStack, SubmitNodeCollector submitNodeCollector, int light) {
+        int r = renderState.glassSphereRadius;
+        if (r <= 0) return;
+
+        int r2 = r * r;
+        int inner = Math.max(0, r - 1);
+        int inner2 = inner * inner;
+        BlockState ghostState = renderState.glassSphereBlock;
+
+        for (int x = -r; x <= r; x++) {
+            for (int y = -r; y <= r; y++) {
+                for (int z = -r; z <= r; z++) {
+                    int d2 = (x * x + y * y + z * z);
+                    if (d2 <= r2 && d2 > inner2) {
+                        renderGhostBlock(poseStack, submitNodeCollector, ghostState, x, y, z, light);
+                    }
+                }
+            }
+        }
+    }
+
     private void renderGhostBlock(PoseStack poseStack, SubmitNodeCollector submitNodeCollector, BlockState state, int dx, int dy, int dz, int light) {
         if (dx == 0 && dy == 0 && dz == 0) return;
 
@@ -149,7 +178,8 @@ public class InfusionAltarBlockEntityRenderer implements BlockEntityRenderer<Abs
         poseStack.translate(0.25f, 0.25f, 0.25f);
         poseStack.scale(0.5f, 0.5f, 0.5f);
 
-        submitNodeCollector.submitBlock(poseStack, state, light, OverlayTexture.NO_OVERLAY, 0);
+        int fullBright = LightTexture.pack(15, 15);
+        submitNodeCollector.submitBlock(poseStack, state, fullBright, OverlayTexture.NO_OVERLAY, 0);
         
         poseStack.popPose();
     }

@@ -9,7 +9,8 @@ import org.iansaididontcare.etymonica.block.ModBlocks;
 import org.iansaididontcare.etymonica.block.entity.enchantingtable.EnchantingTableTier0BlockEntity;
 import org.iansaididontcare.etymonica.block.entity.enchantingtable.EnchantingTableTier1BlockEntity;
 import org.iansaididontcare.etymonica.block.entity.enchantingtable.EnchantingTableTier2BlockEntity;
-import org.iansaididontcare.etymonica.block.entity.jar.ZombieBrainInAJarBlockEntity;
+import org.iansaididontcare.etymonica.block.entity.jar.JarBlockEntity;
+import org.iansaididontcare.etymonica.block.entity.jar.ZombieBrainJarBlockEntity;
 import org.iansaididontcare.etymonica.block.entity.infusionaltar.InfusionAltarTier0BlockEntity;
 import org.iansaididontcare.etymonica.block.entity.infusionaltar.InfusionAltarTier1BlockEntity;
 import org.iansaididontcare.etymonica.block.entity.infusionaltar.InfusionAltarTier2BlockEntity;
@@ -60,10 +61,15 @@ public class ModBlockEntities {
                         org.iansaididontcare.etymonica.block.entity.infusionaltar.AltarPartBlockEntity::new,
                         ModBlocks.ALTAR_PART_BLOCK.get()));
 
-        public static final Supplier<BlockEntityType<ZombieBrainInAJarBlockEntity>> BRAIN_IN_A_JAR_BE =
-                BLOCK_ENTITIES.register("brain_in_a_jar_be", () -> new BlockEntityType<>(
-                        ZombieBrainInAJarBlockEntity::new,
-                        ModBlocks.BRAIN_IN_A_JAR.get()));
+        public static final Supplier<BlockEntityType<ZombieBrainJarBlockEntity>> ZOMBIE_BRAIN_JAR_BE =
+                BLOCK_ENTITIES.register("zombie_brain_jar_be", () -> new BlockEntityType<>(
+                        ZombieBrainJarBlockEntity::new,
+                        ModBlocks.ZOMBIE_BRAIN_JAR.get()));
+
+        public static final Supplier<BlockEntityType<JarBlockEntity>> JAR_BE =
+                BLOCK_ENTITIES.register("jar_be", () -> new BlockEntityType<>(
+                        JarBlockEntity::new,
+                        ModBlocks.JAR.get()));
 
         public static void register(IEventBus eventBus) {
                 BLOCK_ENTITIES.register(eventBus);

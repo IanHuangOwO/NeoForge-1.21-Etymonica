@@ -1,10 +1,10 @@
 {
   "variants": {
     "formed=false": {
-      "model": "minecraft:block/enchanting_table"
+      "model": "minecraft:block/diamond_block"
     },
     "formed=true": {
-      "model": "minecraft:block/enchanting_table"
+      "model": "minecraft:block/diamond_block"
     }
   }
 }

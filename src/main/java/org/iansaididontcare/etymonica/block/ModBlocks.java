@@ -13,13 +13,14 @@ import org.iansaididontcare.etymonica.block.custom.enchantingtable.EnchantingTab
 import org.iansaididontcare.etymonica.block.custom.enchantingtable.EnchantingTableTier1Block;
 import org.iansaididontcare.etymonica.block.custom.enchantingtable.EnchantingTableTier2Block;
 import org.iansaididontcare.etymonica.block.custom.infusionaltar.PedestalBlock;
-import org.iansaididontcare.etymonica.block.custom.jar.ZombieBrainInAJarBlock;
+import org.iansaididontcare.etymonica.block.custom.jar.ZombieBrainJarBlock;
 import org.iansaididontcare.etymonica.block.custom.infusionaltar.InfusionAltarTier0Block;
 import org.iansaididontcare.etymonica.block.custom.infusionaltar.InfusionAltarTier1Block;
 import org.iansaididontcare.etymonica.block.custom.infusionaltar.InfusionAltarTier2Block;
+import org.iansaididontcare.etymonica.block.custom.jar.JarBlock;
 import org.iansaididontcare.etymonica.fluid.ModFluids;
 import org.iansaididontcare.etymonica.item.ModItems;
-import org.iansaididontcare.etymonica.item.custom.BrainInAJarItem;
+import org.iansaididontcare.etymonica.item.custom.jar.JarItem;
 
 import java.util.function.Function;
 
@@ -69,8 +70,14 @@ public class ModBlocks {
                         .noOcclusion()
                         .noLootTable()));
 
-        public static final DeferredBlock<Block> BRAIN_IN_A_JAR = registerBlock("brain_in_a_jar",
-                properties -> new ZombieBrainInAJarBlock(properties
+        public static final DeferredBlock<Block> ZOMBIE_BRAIN_JAR = registerBlock("zombie_brain_jar",
+                properties -> new ZombieBrainJarBlock(properties
+                        .strength(2.0f)
+                        .sound(SoundType.GLASS)
+                        .noOcclusion()));
+        
+        public static final DeferredBlock<Block> JAR = registerBlock("jar",
+                properties -> new JarBlock(properties
                         .strength(2.0f)
                         .sound(SoundType.GLASS)
                         .noOcclusion()));
@@ -90,8 +97,8 @@ public class ModBlocks {
 
         private static <T extends Block> void registerBlockItem(String name, DeferredBlock<T> block) {
                 ModItems.ITEMS.registerItem(name, (properties) -> {
-                if ("brain_in_a_jar".equals(name)) {
-                        return new BrainInAJarItem(block.get(), properties.useBlockDescriptionPrefix().stacksTo(1));
+                if ("zombie_brain_jar".equals(name) || "jar".equals(name)) {
+                        return new JarItem(block.get(), properties.useBlockDescriptionPrefix().stacksTo(1));
                 }
                 return new BlockItem(block.get(), properties.useBlockDescriptionPrefix());
                 });

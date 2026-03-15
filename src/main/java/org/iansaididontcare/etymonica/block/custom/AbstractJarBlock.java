@@ -129,7 +129,7 @@ public abstract class AbstractJarBlock extends BaseEntityBlock {
     }
 
     protected String getStorageMessageKey() {
-        return "message.etymonica.brain_in_a_jar.storage";
+        return "message.etymonica.jar.storage";
     }
 
     protected abstract boolean isJarEntity(@Nullable BlockEntity blockEntity);

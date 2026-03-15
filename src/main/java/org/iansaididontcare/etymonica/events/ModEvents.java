@@ -8,8 +8,9 @@ import net.minecraft.world.item.ItemStack;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.neoforge.common.NeoForge;
 import net.neoforged.neoforge.event.tick.PlayerTickEvent;
-import org.iansaididontcare.etymonica.item.custom.BrainInAJarItem;
+import org.iansaididontcare.etymonica.item.custom.jar.JarItem;
 import org.iansaididontcare.etymonica.registry.jar.data.JarData;
+import org.iansaididontcare.etymonica.block.ModBlocks;
 
 public final class ModEvents {
     private static final int MB_PER_XP_POINT = 20;
@@ -40,12 +41,16 @@ public final class ModEvents {
         int containerSize = player.getInventory().getContainerSize();
         for (int slot = 0; slot < containerSize; slot++) {
             ItemStack stack = player.getInventory().getItem(slot);
-            if (!(stack.getItem() instanceof BrainInAJarItem)) {
+            if (!(stack.getItem() instanceof JarItem)) {
+                continue;
+            }
+            if (!(stack.getItem() instanceof BlockItem blockItem)
+                    || !blockItem.getBlock().equals(ModBlocks.ZOMBIE_BRAIN_JAR.get())) {
                 continue;
             }
 
             int capacity = getCapacity(stack);
-            int stored = BrainInAJarItem.getStoredMillibuckets(stack);
+            int stored = JarItem.getStoredMillibuckets(stack);
             int spaceMb = capacity - stored;
             if (spaceMb <= 0) {
                 continue;
@@ -61,7 +66,7 @@ public final class ModEvents {
             }
 
             if (drained > 0) {
-                BrainInAJarItem.setStoredMillibuckets(stack, stored + (drained * MB_PER_XP_POINT));
+                JarItem.setStoredMillibuckets(stack, stored + (drained * MB_PER_XP_POINT));
                 return;
             }
         }

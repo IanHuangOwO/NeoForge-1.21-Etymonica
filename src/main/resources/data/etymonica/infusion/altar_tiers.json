@@ -8,6 +8,7 @@
       "max_linked_pedestals": 16,
       "multiblock_radius": 4,
       "multiblock_block": "minecraft:gold_block",
+      "glass_sphere_radius": 3,
       "weights": {
         "common": 0.6,
         "uncommon": 0.3,
@@ -25,6 +26,7 @@
       "max_linked_pedestals": 32,
       "multiblock_radius": 7,
       "multiblock_block": "minecraft:gold_block",
+      "glass_sphere_radius": 6,
       "weights": {
         "common": 0.3,
         "uncommon": 0.4,
@@ -42,6 +44,7 @@
       "max_linked_pedestals": 64,
       "multiblock_radius": 10,
       "multiblock_block": "minecraft:gold_block",
+      "glass_sphere_radius": 9,
       "weights": {
         "common": 0.1,
         "uncommon": 0.2,

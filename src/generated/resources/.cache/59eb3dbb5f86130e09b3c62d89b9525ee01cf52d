@@ -1,11 +1,12 @@
-// 1.21.11	2026-03-07T18:50:31.7751055	Loot Tables
-87dc8cf4f77bd03518c0d04c3c39811c65d2d538 data/etymonica/loot_table/blocks/brain_in_a_jar.json
+// 1.21.11	2026-03-16T00:12:03.6870234	Loot Tables
 367c1f7d90891cbf3ac56b3f473f596032fe0454 data/etymonica/loot_table/blocks/enchanting_table_tier0.json
 ca5651487df208f979a00cbb2d2b11bf05e1b095 data/etymonica/loot_table/blocks/enchanting_table_tier1.json
 f025dc84ad3a0e3c68f27d0e9641e6f43f5397bb data/etymonica/loot_table/blocks/enchanting_table_tier2.json
 7d09b19ad305f0fb3514a689dffe9bb72e7ab671 data/etymonica/loot_table/blocks/infusion_altar_tier0.json
 996dafdd89350e0d12f165295a34e164964515e8 data/etymonica/loot_table/blocks/infusion_altar_tier1.json
 e7eb4c2bb38670e77ed3f6aaf1c3a15cc7f6326e data/etymonica/loot_table/blocks/infusion_altar_tier2.json
+69739d68508d15d872b7bf819110b37700a52c73 data/etymonica/loot_table/blocks/jar.json
 ecc652efacce5bd458d2dd0280104c85f43c6d34 data/etymonica/loot_table/blocks/liquid_experience_block.json
 652c06b3528f2a1be010f91420213925b9287ae0 data/etymonica/loot_table/blocks/orichalcum_block.json
 cb7a6dc065ae7e93fbe476843c3897ab64953930 data/etymonica/loot_table/blocks/pedestal.json
+a98da74e74154ede954f5ad5a5ba33b43cf02eee data/etymonica/loot_table/blocks/zombie_brain_jar.json

@@ -13,7 +13,8 @@
   "item.etymonica.tuning_fork": "Tuning Fork",
 
   "block.etymonica.orichalcum_block": "Orichalcum Block",
-  "block.etymonica.brain_in_a_jar": "Brain in a Jar",
+  "block.etymonica.zombie_brain_jar": "Zombie Brain Jar",
+  "block.etymonica.jar": "Jar",
   "block.etymonica.liquid_experience_block": "Liquid Experience",
   "block.etymonica.enchanting_table_tier0": "Enchanting Table (Basic)",
   "block.etymonica.enchanting_table_tier1": "Enchanting Table (Advanced)",
@@ -53,7 +54,7 @@
   "message.etymonica.tuning_fork.wrong_dimension": "Bound machine is in a different dimension.",
   "message.etymonica.tuning_fork.bound_missing": "Bound machine is missing. Clearing bind.",
   "message.etymonica.tuning_fork.unbound": "Tuning Fork unbound.",
-  "message.etymonica.brain_in_a_jar.storage": "Stored XP Fluid: %s / %s mB",
+  "message.etymonica.jar.storage": "Stored XP Fluid: %s / %s mB",
 
   "tooltip.etymonica.tuning_fork.usage_header": "Functions",
   "tooltip.etymonica.tuning_fork.usage.bind": "Shift + Right-click Machine: bind / relink toggle",
@@ -63,7 +64,7 @@
   "tooltip.etymonica.tuning_fork.bound": "Bound: %s, %s, %s",
   "tooltip.etymonica.tuning_fork.different_dimension": "Different dimension",
   "tooltip.etymonica.tuning_fork.table_not_loaded": "(Machine not loaded)",
-  "tooltip.etymonica.brain_in_a_jar.storage": "Stored XP Fluid: %s / %s mB",
+  "tooltip.etymonica.jar.storage": "Stored XP Fluid: %s / %s mB",
   "tooltip.etymonica.experience_tree.experience": "Experience: %s",
   "tooltip.etymonica.experience_tree.age": "Level: %s"
 }

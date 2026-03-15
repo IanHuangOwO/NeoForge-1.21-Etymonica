@@ -24,7 +24,8 @@ public class ModBlockLootTableProvider extends BlockLootSubProvider {
         dropSelf(ModBlocks.INFUSION_ALTAR_TIER0.get());
         dropSelf(ModBlocks.INFUSION_ALTAR_TIER1.get());
         dropSelf(ModBlocks.INFUSION_ALTAR_TIER2.get());
-        dropSelf(ModBlocks.BRAIN_IN_A_JAR.get());
+        dropSelf(ModBlocks.ZOMBIE_BRAIN_JAR.get());
+        dropSelf(ModBlocks.JAR.get());
         add(ModBlocks.LIQUID_EXPERIENCE_BLOCK.get(), noDrop());
     }
 

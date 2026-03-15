@@ -13,10 +13,10 @@ import org.iansaididontcare.etymonica.registry.jar.api.JarTypeStats;
 import org.iansaididontcare.etymonica.registry.jar.api.ZombieJarStats;
 import org.iansaididontcare.etymonica.registry.jar.data.JarData;
 
-public class ZombieBrainInAJarBlockEntity extends AbstractJarBlockEntity {
+public class ZombieBrainJarBlockEntity extends AbstractJarBlockEntity {
 
-    public ZombieBrainInAJarBlockEntity(BlockPos pos, BlockState blockState) {
-        super(ModBlockEntities.BRAIN_IN_A_JAR_BE.get(), pos, blockState);
+    public ZombieBrainJarBlockEntity(BlockPos pos, BlockState blockState) {
+        super(ModBlockEntities.ZOMBIE_BRAIN_JAR_BE.get(), pos, blockState);
     }
 
     private JarTypeStats getStats() {

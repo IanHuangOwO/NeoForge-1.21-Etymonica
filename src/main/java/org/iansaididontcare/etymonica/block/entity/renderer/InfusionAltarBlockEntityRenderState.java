@@ -19,6 +19,8 @@ public class InfusionAltarBlockEntityRenderState extends BlockEntityRenderState 
     public boolean isFormed;
     public int multiblockRadius;
     public BlockState multiblockBlock;
+    public int glassSphereRadius;
+    public BlockState glassSphereBlock;
 
     public final ItemStackRenderState itemState = new ItemStackRenderState();
     public boolean hasItem = false;

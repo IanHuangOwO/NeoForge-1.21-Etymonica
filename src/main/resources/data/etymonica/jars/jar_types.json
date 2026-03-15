@@ -1,6 +1,6 @@
 {
   "jars": {
-    "etymonica:brain_in_a_jar": {
+    "etymonica:zombie_brain_jar": {
       "capacity": 8000,
       "zombie_special": {
         "xp_to_mb": 10,
@@ -8,6 +8,9 @@
         "interval": 20,
         "radius": 1.0
       }
+    },
+    "etymonica:jar": {
+      "capacity": 8000
     }
   }
 }

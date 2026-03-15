@@ -23,7 +23,7 @@ public class ModFluids {
     static {
         LIQUID_EXPERIENCE_PROPERTIES =
                 new BaseFlowingFluid.Properties(
-                        NeoForgeMod.WATER_TYPE::value,
+                        NeoForgeMod.LAVA_TYPE::value,
                         ModFluids::still,
                         ModFluids::flowing
                 )

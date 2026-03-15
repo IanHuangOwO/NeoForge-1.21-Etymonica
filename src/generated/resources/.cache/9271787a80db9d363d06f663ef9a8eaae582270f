@@ -1,7 +1,7 @@
-// 1.21.11	2026-03-07T18:50:31.7731033	Model Definitions - etymonica
+// 1.21.11	2026-03-16T00:12:03.6860237	Model Definitions - etymonica
 cc09645c5912cb9ecc15b23ab7e6f0f3f42b5f8f assets/etymonica/blockstates/orichalcum_block.json
+0d663822376ee789a35795fadaef56c4ff782c00 assets/etymonica/items/altar_part_block.json
 a12457cc4631f7fc7be24a08c7389b60c02b9126 assets/etymonica/items/etymonicon.json
-fef5d17615664936acb13b5413dd2f1cc78ff7eb assets/etymonica/items/infusion_core.json
 88948bdffa7303581c7dd66616012baa573fb738 assets/etymonica/items/liquid_experience_bucket.json
 f4f5605f24b470bc07ca3894571adff1ef752076 assets/etymonica/items/orichalcum_block.json
 4fc5a7bdbb37a7c5415cc5777ad6a8806f92f64c assets/etymonica/items/orichalcum_ingot.json

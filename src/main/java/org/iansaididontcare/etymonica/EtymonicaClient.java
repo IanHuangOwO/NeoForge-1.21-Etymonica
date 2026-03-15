@@ -16,6 +16,7 @@ import net.neoforged.neoforge.client.gui.IConfigScreenFactory;
 import org.iansaididontcare.etymonica.block.entity.ModBlockEntities;
 import org.iansaididontcare.etymonica.block.entity.renderer.EnchantingTableBlockEntityRenderer;
 import org.iansaididontcare.etymonica.block.entity.renderer.InfusionAltarBlockEntityRenderer;
+import org.iansaididontcare.etymonica.block.ModBlocks;
 import org.iansaididontcare.etymonica.fluid.ModFluids;
 import org.iansaididontcare.etymonica.screen.ModMenuTypes;
 import org.iansaididontcare.etymonica.screen.custom.EnchantingTableScreen;
@@ -33,6 +34,8 @@ public class EtymonicaClient {
     @SubscribeEvent
     static void onClientSetup(FMLClientSetupEvent event) {
         event.enqueueWork(() -> {
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.ZOMBIE_BRAIN_JAR.get(), ChunkSectionLayer.TRANSLUCENT);
+            ItemBlockRenderTypes.setRenderLayer(ModBlocks.JAR.get(), ChunkSectionLayer.TRANSLUCENT);
             ItemBlockRenderTypes.setRenderLayer(ModFluids.LIQUID_EXPERIENCE.get(), ChunkSectionLayer.TRANSLUCENT);
             ItemBlockRenderTypes.setRenderLayer(ModFluids.FLOWING_LIQUID_EXPERIENCE.get(), ChunkSectionLayer.TRANSLUCENT);
         });

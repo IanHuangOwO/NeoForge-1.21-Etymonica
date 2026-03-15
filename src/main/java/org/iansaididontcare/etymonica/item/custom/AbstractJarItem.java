@@ -1,9 +1,9 @@
 package org.iansaididontcare.etymonica.item.custom;
 
-import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.network.chat.Component;
 import net.minecraft.core.component.DataComponents;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.BlockItem;
 import net.minecraft.world.item.ItemStack;
@@ -16,8 +16,8 @@ import org.iansaididontcare.etymonica.registry.jar.data.JarData;
 
 import java.util.function.Consumer;
 
-public class BrainInAJarItem extends BlockItem {
-    public BrainInAJarItem(Block block, Properties properties) {
+public abstract class AbstractJarItem extends BlockItem {
+    protected AbstractJarItem(Block block, Properties properties) {
         super(block, properties);
     }
 
@@ -27,12 +27,10 @@ public class BrainInAJarItem extends BlockItem {
         super.appendHoverText(stack, context, tooltipDisplay, tooltipAdder, flag);
         int stored = getStoredMillibuckets(stack);
         int capacity = getCapacity(stack);
-        tooltipAdder.accept(Component.translatable(
-                "tooltip.etymonica.brain_in_a_jar.storage",
-                stored,
-                capacity
-        ));
+        tooltipAdder.accept(Component.translatable(getTooltipKey(), stored, capacity));
     }
+
+    protected abstract String getTooltipKey();
 
     public static int getStoredMillibuckets(ItemStack stack) {
         CompoundTag tag = getJarTag(stack);
